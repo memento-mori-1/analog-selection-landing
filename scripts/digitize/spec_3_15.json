@@ -1,0 +1,53 @@
+{
+  "qValues": [0.8, 1, 2, 3, 4, 5],
+  "pdvValues": [20, 30, 50, 100, 200, 300],
+  "notes": {
+    "method": "Curves, grid lines and eta/Ny lines were extracted from the vector paths of the catalog PDF (not from pixels); axes calibrated locally on labeled grid lines. Quadratics: P[Pa] = a*Q^2 + b*Q + c, Q in thousand m3/h, Pv = full pressure.",
+    "qRangeGraph": "Actual extent of the bold n=const curve on the graph (thousand m3/h). The catalog table rounds ranges (0.76-1.90/2.00 and 1.60-4.00); do not extrapolate the quadratic beyond qRangeGraph.",
+    "etaSamples": "Crossings of the n=const curve with the constant-efficiency lines (straight lines of slope 2 in log-log). eta label order matches lines sorted left to right by upper end.",
+    "powerSamples": "Ny arcs (blue) do not cross the n=const curves on these graphs, so kw is SHAFT power derived at each eta crossing: kw = Q*1000*P/(3.6e6*eta). Installed motor power Ny (blue arc value) = shaft power * K; see the task report for the K check.",
+    "pdvAxis": "Pdv = coeffC * Q_thousand^2, coeffC = geometric mean over the 6 labeled Pdv ticks (20,30,50,100,200,300 Pa)."
+  },
+  "graphs": {
+    "1": {
+      "page": 0, "frame": [1400, 540, 2160, 1600], "crop": [1250, 440, 2340, 1800],
+      "qx": [1449.0, 1528.1, 1772.4, 1913.6, 2018.0, 2096.4],
+      "py": [[533.1, 2000], [783.6, 1000], [867.9, 800], [970.2, 600], [1113.7, 400], [1217.0, 300], [1361.9, 200], [1609.9, 100]],
+      "pdvx": [1533.6, 1606.0, 1693.9, 1816.4, 1937.1, 2013.0],
+      "eta": [0.61, 0.71, 0.74, 0.76, 0.78, 0.76, 0.74, 0.71, 0.65]
+    },
+    "0.9": {
+      "page": 2, "frame": [391, 635, 1062, 1565], "crop": [250, 480, 1180, 1730],
+      "qx": [477.9, 542.5, 744.3, 861.2, 947.1, 1014.7],
+      "py": [[832.8, 1000], [897.2, 800], [980.5, 600], [1095.5, 400], [1181.3, 300], [1298.2, 200], [1499.1, 100]],
+      "pdvx": [543.7, 604.4, 678.6, 778.2, 880.1, 938.9],
+      "eta": [0.66, 0.69, 0.71, 0.72, 0.71, 0.69, 0.66, 0.61]
+    },
+    "0.95": {
+      "page": 2, "frame": [1410, 620, 2090, 1570], "crop": [1290, 480, 2240, 1730],
+      "qx": [1498.8, 1564.0, 1766.8, 1884.8, 1970.8, 2034.8],
+      "py": [[830.0, 1000], [895.8, 800], [979.1, 600], [1095.5, 400], [1178.9, 300], [1296.4, 200], [1496.7, 100]],
+      "pdvx": [1566.3, 1625.2, 1698.6, 1798.6, 1901.6, 1960.0],
+      "eta": [0.65, 0.7, 0.74, 0.76, 0.77, 0.76, 0.74, 0.7, 0.65]
+    },
+    "1.05": {
+      "page": 2, "frame": [380, 1965, 1060, 2830], "crop": [250, 1860, 1190, 3010],
+      "qx": [468.2, 531.9, 733.2, 852.2, 936.0, 1003.6],
+      "py": [[2087.9, 2000], [2288.6, 1000], [2352.3, 800], [2435.5, 600], [2553.0, 400], [2637.8, 300], [2751.5, 200]],
+      "pdvx": [534.7, 593.8, 668.1, 768.5, 869.5, 929.4],
+      "eta": [0.65, 0.72, 0.74, 0.75, 0.75, 0.74, 0.7, 0.64]
+    },
+    "1.1": {
+      "page": 2, "frame": [1410, 1960, 2090, 2825], "crop": [1290, 1860, 2240, 3010],
+      "qx": [1498.6, 1563.2, 1765.0, 1884.1, 1967.8, 2033.6],
+      "py": [[2084.5, 2000], [2283.4, 1000], [2345.9, 800], [2431.4, 600], [2549.9, 400], [2633.7, 300], [2749.4, 200]],
+      "pdvx": [1564.4, 1623.8, 1698.9, 1799.3, 1902.8, 1960.1],
+      "eta": [0.66, 0.7, 0.74, 0.76, 0.78, 0.78, 0.76, 0.74, 0.7, 0.66]
+    }
+  },
+  "drawing": {
+    "page": 1,
+    "crop": [174, 1780, 2260, 2830],
+    "whiten": [[0, 890, 1200, null]]
+  }
+}

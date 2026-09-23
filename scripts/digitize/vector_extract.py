@@ -47,16 +47,19 @@ def collect(page, frame):
     """Жирные кривые n=const и диагонали eta внутри рамки графика."""
     bold, diag = [], []
     for dr in page.get_drawings():
-        if dr.get('type') != 's' or not in_box(dr['rect'], frame):
+        if dr.get('type') != 's':
             continue
         w = dr['width']
         if w > 1.0:
-            bold.append(np.vstack(path_points(dr)))
+            if in_box(dr['rect'], frame):
+                bold.append(np.vstack(path_points(dr)))
         elif not (dr['color'] is not None and dr['color'][2] > 0.5 and dr['color'][0] < 0.3):  # синие дуги Ny пропускаем
+            # Диагонали eta проверяем по отрезкам: в некоторых PDF (ВЦ 4-70-3,15, стр. 3) они слиты
+            # в один путь с линиями сетки, и bbox пути выходит за рамку графика.
             for it in dr['items']:
                 if it[0] == 'l':
                     ax, ay, bx, by = it[1].x * Z, it[1].y * Z, it[2].x * Z, it[2].y * Z
-                    if abs(ax - bx) > 0.3 and abs(ay - by) > 0.3 and w < 1:
+                    if abs(ax - bx) > 0.3 and abs(ay - by) > 0.3 and in_box(pymupdf.Rect(min(ax, bx) / Z, min(ay, by) / Z, max(ax, bx) / Z, max(ay, by) / Z), frame):
                         diag.append(((ax, ay), (bx, by)))
     return bold, diag
 
@@ -99,11 +102,13 @@ def cmd_inspect(args):
         if in_box(r, box) and dr['width'] > 1.0:
             print('bold curve  bbox px', [round(v * Z) for v in (r.x0, r.y0, r.x1, r.y1)], 'width', round(dr['width'], 2))
         for it in dr['items']:
-            if it[0] != 'l' or dr['width'] > 0.7:
+            if it[0] != 'l' or dr['width'] >= 1.0:
                 continue
             ax, ay, bx, by = it[1].x * Z, it[1].y * Z, it[2].x * Z, it[2].y * Z
             if not (box[0] <= min(ax, bx) and max(ax, bx) <= box[2] and box[1] <= min(ay, by) and max(ay, by) <= box[3]):
                 continue
+            if dr['width'] > 0.7 and (abs(ay - by) < 0.05 or abs(ax - bx) < 0.05):
+                continue  # не сетка (сетка/оси тоньше 0.7)
             if abs(ay - by) < 0.05:
                 k = round(ay, 1)
                 H[k][0] = min(H[k][0], ax, bx)

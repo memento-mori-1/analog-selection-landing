@@ -1,0 +1,1357 @@
+{
+  "typorazmer": "3,15",
+  "dimensionsByAngle": [
+    {
+      "angle": 0,
+      "B": 570,
+      "H": 600
+    },
+    {
+      "angle": 45,
+      "B": 515,
+      "H": 770
+    },
+    {
+      "angle": 90,
+      "B": 505,
+      "H": 705
+    },
+    {
+      "angle": 135,
+      "B": 655,
+      "H": 665
+    },
+    {
+      "angle": 270,
+      "B": 505,
+      "H": 610
+    },
+    {
+      "angle": 315,
+      "B": 655,
+      "H": 590
+    }
+  ],
+  "diameters": [
+    {
+      "d": 0.9,
+      "curves": [
+        {
+          "rpmNominal": 1500,
+          "rpmActual": 1350,
+          "qRangeThousand": [
+            0.76,
+            1.9
+          ],
+          "pRangeExpected": [
+            95,
+            192
+          ],
+          "motors": [
+            {
+              "nominalKw": 0.18,
+              "consumedKw": 0.28,
+              "type": "АИР56В4",
+              "currentA": 0.65,
+              "massKg": 25
+            }
+          ],
+          "coeffs": {
+            "a": -67.81000103389941,
+            "b": 97.58729420095432,
+            "c": 151.69666189385592
+          },
+          "etaSamples": [
+            {
+              "q": 0.884,
+              "eta": 0.69
+            },
+            {
+              "q": 1.009,
+              "eta": 0.71
+            },
+            {
+              "q": 1.231,
+              "eta": 0.72
+            },
+            {
+              "q": 1.443,
+              "eta": 0.71
+            },
+            {
+              "q": 1.595,
+              "eta": 0.69
+            },
+            {
+              "q": 1.778,
+              "eta": 0.66
+            },
+            {
+              "q": 1.894,
+              "eta": 0.61
+            }
+          ],
+          "powerSamples": [
+            {
+              "q": 0.884,
+              "kw": 0.0663
+            },
+            {
+              "q": 1.009,
+              "kw": 0.0726
+            },
+            {
+              "q": 1.231,
+              "kw": 0.0806
+            },
+            {
+              "q": 1.443,
+              "kw": 0.0839
+            },
+            {
+              "q": 1.595,
+              "kw": 0.0851
+            },
+            {
+              "q": 1.778,
+              "kw": 0.0845
+            },
+            {
+              "q": 1.894,
+              "kw": 0.0807
+            }
+          ],
+          "qRangeGraph": [
+            0.773,
+            1.901
+          ],
+          "pRangeGraph": [
+            91.4,
+            184.0
+          ]
+        },
+        {
+          "rpmNominal": 3000,
+          "rpmActual": 2850,
+          "qRangeThousand": [
+            1.6,
+            4.0
+          ],
+          "pRangeExpected": [
+            400,
+            820
+          ],
+          "motors": [
+            {
+              "nominalKw": 1.1,
+              "consumedKw": 1.39,
+              "type": "АИР71В2",
+              "currentA": 2.55,
+              "massKg": 31
+            }
+          ],
+          "coeffs": {
+            "a": -74.40988292104244,
+            "b": 238.37968236159736,
+            "c": 634.2793698041925
+          },
+          "etaSamples": [
+            {
+              "q": 1.624,
+              "eta": 0.66
+            },
+            {
+              "q": 1.853,
+              "eta": 0.69
+            },
+            {
+              "q": 2.108,
+              "eta": 0.71
+            },
+            {
+              "q": 2.577,
+              "eta": 0.72
+            },
+            {
+              "q": 3.041,
+              "eta": 0.71
+            },
+            {
+              "q": 3.354,
+              "eta": 0.69
+            },
+            {
+              "q": 3.714,
+              "eta": 0.66
+            },
+            {
+              "q": 3.946,
+              "eta": 0.61
+            }
+          ],
+          "powerSamples": [
+            {
+              "q": 1.624,
+              "kw": 0.5615
+            },
+            {
+              "q": 1.853,
+              "kw": 0.6165
+            },
+            {
+              "q": 2.108,
+              "kw": 0.6694
+            },
+            {
+              "q": 2.577,
+              "kw": 0.7464
+            },
+            {
+              "q": 3.041,
+              "kw": 0.7915
+            },
+            {
+              "q": 3.354,
+              "kw": 0.8057
+            },
+            {
+              "q": 3.714,
+              "kw": 0.7852
+            },
+            {
+              "q": 3.946,
+              "kw": 0.7446
+            }
+          ],
+          "qRangeGraph": [
+            1.607,
+            3.974
+          ],
+          "pRangeGraph": [
+            397.6,
+            820.4
+          ]
+        }
+      ],
+      "calibration": {
+        "source": "vector paths of PDF page 3 (curves and grid), pixels in the cropped PNG at 300dpi",
+        "qAxis": {
+          "slope": 672.8229336344649,
+          "intercept": 292.33040895451813,
+          "unit": "thousand m3/h",
+          "pixelAxis": "x",
+          "labeledValues": [
+            0.8,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "maxResidualPx": 2.15
+        },
+        "pAxis": {
+          "slope": -666.3705786966877,
+          "intercept": 2351.460077227436,
+          "unit": "Pa (full pressure Pv)",
+          "pixelAxis": "y",
+          "labeledValuesUsed": [
+            1000,
+            800,
+            600,
+            400,
+            300,
+            200,
+            100
+          ],
+          "maxResidualPx": 2.02
+        },
+        "pdvAxis": {
+          "coeffC": 19.782,
+          "formula": "Pdv = coeffC * Q_thousand^2"
+        },
+        "cropBoxOnPage300dpi": [
+          250,
+          480,
+          1180,
+          1730
+        ],
+        "imageWidth": 930,
+        "imageHeight": 1250
+      }
+    },
+    {
+      "d": 0.95,
+      "curves": [
+        {
+          "rpmNominal": 1500,
+          "rpmActual": 1350,
+          "qRangeThousand": [
+            0.76,
+            1.9
+          ],
+          "pRangeExpected": [
+            120,
+            240
+          ],
+          "motors": [
+            {
+              "nominalKw": 0.18,
+              "consumedKw": 0.28,
+              "type": "АИР56В4",
+              "currentA": 0.65,
+              "massKg": 25
+            }
+          ],
+          "coeffs": {
+            "a": -148.07489510556556,
+            "b": 287.35581686422944,
+            "c": 98.75244605689458
+          },
+          "etaSamples": [
+            {
+              "q": 0.897,
+              "eta": 0.7
+            },
+            {
+              "q": 1.092,
+              "eta": 0.74
+            },
+            {
+              "q": 1.247,
+              "eta": 0.76
+            },
+            {
+              "q": 1.444,
+              "eta": 0.77
+            },
+            {
+              "q": 1.593,
+              "eta": 0.76
+            },
+            {
+              "q": 1.688,
+              "eta": 0.74
+            },
+            {
+              "q": 1.791,
+              "eta": 0.7
+            },
+            {
+              "q": 1.863,
+              "eta": 0.65
+            }
+          ],
+          "powerSamples": [
+            {
+              "q": 0.897,
+              "kw": 0.0852
+            },
+            {
+              "q": 1.092,
+              "kw": 0.0977
+            },
+            {
+              "q": 1.247,
+              "kw": 0.1034
+            },
+            {
+              "q": 1.444,
+              "kw": 0.1056
+            },
+            {
+              "q": 1.593,
+              "kw": 0.1043
+            },
+            {
+              "q": 1.688,
+              "kw": 0.1024
+            },
+            {
+              "q": 1.791,
+              "kw": 0.0993
+            },
+            {
+              "q": 1.863,
+              "kw": 0.0963
+            }
+          ],
+          "qRangeGraph": [
+            0.78,
+            1.872
+          ],
+          "pRangeGraph": [
+            118.0,
+            229.9
+          ]
+        },
+        {
+          "rpmNominal": 3000,
+          "rpmActual": 2850,
+          "qRangeThousand": [
+            1.6,
+            4.0
+          ],
+          "pRangeExpected": [
+            550,
+            1050
+          ],
+          "motors": [
+            {
+              "nominalKw": 1.5,
+              "consumedKw": 1.85,
+              "type": "АИР80А2",
+              "currentA": 3.3,
+              "massKg": 34
+            }
+          ],
+          "coeffs": {
+            "a": -137.52596931197877,
+            "b": 544.037488895858,
+            "c": 526.8008663029992
+          },
+          "etaSamples": [
+            {
+              "q": 1.624,
+              "eta": 0.65
+            },
+            {
+              "q": 1.876,
+              "eta": 0.7
+            },
+            {
+              "q": 2.295,
+              "eta": 0.74
+            },
+            {
+              "q": 2.614,
+              "eta": 0.76
+            },
+            {
+              "q": 3.029,
+              "eta": 0.77
+            },
+            {
+              "q": 3.329,
+              "eta": 0.76
+            },
+            {
+              "q": 3.539,
+              "eta": 0.74
+            },
+            {
+              "q": 3.758,
+              "eta": 0.7
+            },
+            {
+              "q": 3.937,
+              "eta": 0.65
+            }
+          ],
+          "powerSamples": [
+            {
+              "q": 1.624,
+              "kw": 0.7159
+            },
+            {
+              "q": 1.876,
+              "kw": 0.7986
+            },
+            {
+              "q": 2.295,
+              "kw": 0.9181
+            },
+            {
+              "q": 2.614,
+              "kw": 0.9685
+            },
+            {
+              "q": 3.029,
+              "kw": 0.9872
+            },
+            {
+              "q": 3.329,
+              "kw": 0.9751
+            },
+            {
+              "q": 3.539,
+              "kw": 0.9577
+            },
+            {
+              "q": 3.758,
+              "kw": 0.9384
+            },
+            {
+              "q": 3.937,
+              "kw": 0.9218
+            }
+          ],
+          "qRangeGraph": [
+            1.622,
+            3.951
+          ],
+          "pRangeGraph": [
+            541.0,
+            1031.1
+          ]
+        }
+      ],
+      "calibration": {
+        "source": "vector paths of PDF page 3 (curves and grid), pixels in the cropped PNG at 300dpi",
+        "qAxis": {
+          "slope": 674.0006089980249,
+          "intercept": 273.9913302886773,
+          "unit": "thousand m3/h",
+          "pixelAxis": "x",
+          "labeledValues": [
+            0.8,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "maxResidualPx": 1.02
+        },
+        "pAxis": {
+          "slope": -666.0514667356347,
+          "intercept": 2348.8938450102837,
+          "unit": "Pa (full pressure Pv)",
+          "pixelAxis": "y",
+          "labeledValuesUsed": [
+            1000,
+            800,
+            600,
+            400,
+            300,
+            200,
+            100
+          ],
+          "maxResidualPx": 0.74
+        },
+        "pdvAxis": {
+          "coeffC": 19.909,
+          "formula": "Pdv = coeffC * Q_thousand^2"
+        },
+        "cropBoxOnPage300dpi": [
+          1290,
+          480,
+          2240,
+          1730
+        ],
+        "imageWidth": 950,
+        "imageHeight": 1250
+      }
+    },
+    {
+      "d": 1.0,
+      "curves": [
+        {
+          "rpmNominal": 1500,
+          "rpmActual": 1350,
+          "qRangeThousand": [
+            0.76,
+            2.0
+          ],
+          "pRangeExpected": [
+            140,
+            275
+          ],
+          "motors": [
+            {
+              "nominalKw": 0.25,
+              "consumedKw": 0.37,
+              "type": "АИР63А4",
+              "currentA": 0.83,
+              "massKg": 26
+            },
+            {
+              "nominalKw": 0.37,
+              "consumedKw": 0.55,
+              "type": "АИР63В4",
+              "currentA": 1.2,
+              "massKg": 27
+            }
+          ],
+          "coeffs": {
+            "a": -100.66550631841488,
+            "b": 162.3448924583618,
+            "c": 211.02003896925046
+          },
+          "etaSamples": [
+            {
+              "q": 0.882,
+              "eta": 0.71
+            },
+            {
+              "q": 0.99,
+              "eta": 0.74
+            },
+            {
+              "q": 1.121,
+              "eta": 0.76
+            },
+            {
+              "q": 1.357,
+              "eta": 0.78
+            },
+            {
+              "q": 1.598,
+              "eta": 0.76
+            },
+            {
+              "q": 1.7,
+              "eta": 0.74
+            },
+            {
+              "q": 1.82,
+              "eta": 0.71
+            },
+            {
+              "q": 1.989,
+              "eta": 0.65
+            }
+          ],
+          "powerSamples": [
+            {
+              "q": 0.882,
+              "kw": 0.0961
+            },
+            {
+              "q": 0.99,
+              "kw": 0.1036
+            },
+            {
+              "q": 1.121,
+              "kw": 0.1113
+            },
+            {
+              "q": 1.357,
+              "kw": 0.1186
+            },
+            {
+              "q": 1.598,
+              "kw": 0.1223
+            },
+            {
+              "q": 1.7,
+              "kw": 0.1228
+            },
+            {
+              "q": 1.82,
+              "kw": 0.122
+            },
+            {
+              "q": 1.989,
+              "kw": 0.1175
+            }
+          ],
+          "qRangeGraph": [
+            0.775,
+            2.017
+          ],
+          "pRangeGraph": [
+            132.3,
+            270.3
+          ]
+        },
+        {
+          "rpmNominal": 3000,
+          "rpmActual": 2850,
+          "qRangeThousand": [
+            1.6,
+            4.0
+          ],
+          "pRangeExpected": [
+            600,
+            1200
+          ],
+          "motors": [
+            {
+              "nominalKw": 1.5,
+              "consumedKw": 1.85,
+              "type": "АИР80А2",
+              "currentA": 3.3,
+              "massKg": 34
+            },
+            {
+              "nominalKw": 2.2,
+              "consumedKw": 2.72,
+              "type": "АИР80В2",
+              "currentA": 4.8,
+              "massKg": 37
+            }
+          ],
+          "coeffs": {
+            "a": -101.69487517593875,
+            "b": 346.6886537619176,
+            "c": 928.2445132402949
+          },
+          "etaSamples": [
+            {
+              "q": 1.6,
+              "eta": 0.61
+            },
+            {
+              "q": 1.849,
+              "eta": 0.71
+            },
+            {
+              "q": 2.064,
+              "eta": 0.74
+            },
+            {
+              "q": 2.339,
+              "eta": 0.76
+            },
+            {
+              "q": 2.828,
+              "eta": 0.78
+            },
+            {
+              "q": 3.34,
+              "eta": 0.76
+            },
+            {
+              "q": 3.554,
+              "eta": 0.74
+            },
+            {
+              "q": 3.818,
+              "eta": 0.71
+            },
+            {
+              "q": 4.182,
+              "eta": 0.65
+            }
+          ],
+          "powerSamples": [
+            {
+              "q": 1.6,
+              "kw": 0.8684
+            },
+            {
+              "q": 1.849,
+              "kw": 0.8989
+            },
+            {
+              "q": 2.064,
+              "kw": 0.9636
+            },
+            {
+              "q": 2.339,
+              "kw": 1.0332
+            },
+            {
+              "q": 2.828,
+              "kw": 1.0986
+            },
+            {
+              "q": 3.34,
+              "kw": 1.1349
+            },
+            {
+              "q": 3.554,
+              "kw": 1.1417
+            },
+            {
+              "q": 3.818,
+              "kw": 1.1355
+            },
+            {
+              "q": 4.182,
+              "kw": 1.1028
+            }
+          ],
+          "qRangeGraph": [
+            1.586,
+            4.206
+          ],
+          "pRangeGraph": [
+            607.0,
+            1186.9
+          ]
+        }
+      ],
+      "calibration": {
+        "source": "vector paths of PDF page 1 (curves and grid), pixels in the cropped PNG at 300dpi",
+        "qAxis": {
+          "slope": 812.8537670628898,
+          "intercept": 277.7005601472308,
+          "unit": "thousand m3/h",
+          "pixelAxis": "x",
+          "labeledValues": [
+            0.8,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "maxResidualPx": 1.93
+        },
+        "pAxis": {
+          "slope": -826.6274717127314,
+          "intercept": 2824.5143597013853,
+          "unit": "Pa (full pressure Pv)",
+          "pixelAxis": "y",
+          "labeledValuesUsed": [
+            2000,
+            1000,
+            800,
+            600,
+            400,
+            300,
+            200,
+            100
+          ],
+          "maxResidualPx": 3.16
+        },
+        "pdvAxis": {
+          "coeffC": 19.405,
+          "formula": "Pdv = coeffC * Q_thousand^2"
+        },
+        "cropBoxOnPage300dpi": [
+          1250,
+          440,
+          2340,
+          1800
+        ],
+        "imageWidth": 1090,
+        "imageHeight": 1360
+      }
+    },
+    {
+      "d": 1.05,
+      "curves": [
+        {
+          "rpmNominal": 1500,
+          "rpmActual": 1350,
+          "qRangeThousand": [
+            0.76,
+            2.0
+          ],
+          "pRangeExpected": [
+            180,
+            310
+          ],
+          "motors": [
+            {
+              "nominalKw": 0.25,
+              "consumedKw": 0.37,
+              "type": "АИР63А4",
+              "currentA": 0.83,
+              "massKg": 27
+            },
+            {
+              "nominalKw": 0.37,
+              "consumedKw": 0.55,
+              "type": "АИР63В4",
+              "currentA": 1.2,
+              "massKg": 27
+            }
+          ],
+          "coeffs": {
+            "a": -125.16169938726453,
+            "b": 234.21481932548338,
+            "c": 197.28151519421817
+          },
+          "etaSamples": [
+            {
+              "q": 0.777,
+              "eta": 0.65
+            },
+            {
+              "q": 0.983,
+              "eta": 0.72
+            },
+            {
+              "q": 1.165,
+              "eta": 0.74
+            },
+            {
+              "q": 1.315,
+              "eta": 0.75
+            },
+            {
+              "q": 1.486,
+              "eta": 0.75
+            },
+            {
+              "q": 1.623,
+              "eta": 0.74
+            },
+            {
+              "q": 1.774,
+              "eta": 0.7
+            },
+            {
+              "q": 1.958,
+              "eta": 0.64
+            }
+          ],
+          "powerSamples": [
+            {
+              "q": 0.777,
+              "kw": 0.098
+            },
+            {
+              "q": 0.983,
+              "kw": 0.1193
+            },
+            {
+              "q": 1.165,
+              "kw": 0.1346
+            },
+            {
+              "q": 1.315,
+              "kw": 0.1418
+            },
+            {
+              "q": 1.486,
+              "kw": 0.1454
+            },
+            {
+              "q": 1.623,
+              "kw": 0.146
+            },
+            {
+              "q": 1.774,
+              "kw": 0.1495
+            },
+            {
+              "q": 1.958,
+              "kw": 0.1542
+            }
+          ],
+          "qRangeGraph": [
+            0.769,
+            1.988
+          ],
+          "pRangeGraph": [
+            176.9,
+            293.6
+          ]
+        },
+        {
+          "rpmNominal": 3000,
+          "rpmActual": 2850,
+          "qRangeThousand": [
+            1.6,
+            4.0
+          ],
+          "pRangeExpected": [
+            800,
+            1300
+          ],
+          "motors": [
+            {
+              "nominalKw": 2.2,
+              "consumedKw": 2.72,
+              "type": "АИР80В2",
+              "currentA": 4.8,
+              "massKg": 37
+            }
+          ],
+          "coeffs": {
+            "a": -135.42860801800202,
+            "b": 555.505546367117,
+            "c": 805.9747855815452
+          },
+          "etaSamples": [
+            {
+              "q": 1.632,
+              "eta": 0.65
+            },
+            {
+              "q": 2.066,
+              "eta": 0.72
+            },
+            {
+              "q": 2.442,
+              "eta": 0.74
+            },
+            {
+              "q": 2.762,
+              "eta": 0.75
+            },
+            {
+              "q": 3.143,
+              "eta": 0.75
+            },
+            {
+              "q": 3.441,
+              "eta": 0.74
+            },
+            {
+              "q": 3.76,
+              "eta": 0.7
+            },
+            {
+              "q": 4.116,
+              "eta": 0.64
+            }
+          ],
+          "powerSamples": [
+            {
+              "q": 1.632,
+              "kw": 0.9191
+            },
+            {
+              "q": 2.066,
+              "kw": 1.122
+            },
+            {
+              "q": 2.442,
+              "kw": 1.2649
+            },
+            {
+              "q": 2.762,
+              "kw": 1.3402
+            },
+            {
+              "q": 3.143,
+              "kw": 1.3896
+            },
+            {
+              "q": 3.441,
+              "kw": 1.4044
+            },
+            {
+              "q": 3.76,
+              "kw": 1.4385
+            },
+            {
+              "q": 4.116,
+              "kw": 1.4609
+            }
+          ],
+          "qRangeGraph": [
+            1.623,
+            4.162
+          ],
+          "pRangeGraph": [
+            798.3,
+            1314.2
+          ]
+        }
+      ],
+      "calibration": {
+        "source": "vector paths of PDF page 3 (curves and grid), pixels in the cropped PNG at 300dpi",
+        "qAxis": {
+          "slope": 671.9538202366177,
+          "intercept": 282.18421203565197,
+          "unit": "thousand m3/h",
+          "pixelAxis": "x",
+          "labeledValues": [
+            0.8,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "maxResidualPx": 1.74
+        },
+        "pAxis": {
+          "slope": -664.8342229249891,
+          "intercept": 2422.777284285703,
+          "unit": "Pa (full pressure Pv)",
+          "pixelAxis": "y",
+          "labeledValuesUsed": [
+            2000,
+            1000,
+            800,
+            600,
+            400,
+            300,
+            200
+          ],
+          "maxResidualPx": 1.9
+        },
+        "pdvAxis": {
+          "coeffC": 19.726,
+          "formula": "Pdv = coeffC * Q_thousand^2"
+        },
+        "cropBoxOnPage300dpi": [
+          250,
+          1860,
+          1190,
+          3010
+        ],
+        "imageWidth": 940,
+        "imageHeight": 1150
+      }
+    },
+    {
+      "d": 1.1,
+      "curves": [
+        {
+          "rpmNominal": 1500,
+          "rpmActual": 1350,
+          "qRangeThousand": [
+            0.76,
+            2.0
+          ],
+          "pRangeExpected": [
+            200,
+            370
+          ],
+          "motors": [
+            {
+              "nominalKw": 0.37,
+              "consumedKw": 0.55,
+              "type": "АИР63В4",
+              "currentA": 1.2,
+              "massKg": 27
+            }
+          ],
+          "coeffs": {
+            "a": -192.9231431093774,
+            "b": 408.94009811781166,
+            "c": 161.5255966304602
+          },
+          "etaSamples": [
+            {
+              "q": 0.769,
+              "eta": 0.66
+            },
+            {
+              "q": 0.905,
+              "eta": 0.7
+            },
+            {
+              "q": 1.059,
+              "eta": 0.74
+            },
+            {
+              "q": 1.181,
+              "eta": 0.76
+            },
+            {
+              "q": 1.352,
+              "eta": 0.78
+            },
+            {
+              "q": 1.569,
+              "eta": 0.78
+            },
+            {
+              "q": 1.938,
+              "eta": 0.7
+            }
+          ],
+          "powerSamples": [
+            {
+              "q": 0.769,
+              "kw": 0.1157
+            },
+            {
+              "q": 0.905,
+              "kw": 0.1355
+            },
+            {
+              "q": 1.059,
+              "kw": 0.152
+            },
+            {
+              "q": 1.181,
+              "kw": 0.1627
+            },
+            {
+              "q": 1.352,
+              "kw": 0.1731
+            },
+            {
+              "q": 1.569,
+              "kw": 0.1814
+            },
+            {
+              "q": 1.938,
+              "kw": 0.1789
+            }
+          ],
+          "qRangeGraph": [
+            0.766,
+            2.008
+          ],
+          "pRangeGraph": [
+            203.6,
+            357.1
+          ]
+        },
+        {
+          "rpmNominal": 3000,
+          "rpmActual": 2850,
+          "qRangeThousand": [
+            1.6,
+            4.0
+          ],
+          "pRangeExpected": [
+            900,
+            1600
+          ],
+          "motors": [
+            {
+              "nominalKw": 2.2,
+              "consumedKw": 2.72,
+              "type": "АИР80В2",
+              "currentA": 4.8,
+              "massKg": 37
+            }
+          ],
+          "coeffs": {
+            "a": -188.8185523759584,
+            "b": 853.1903650495697,
+            "c": 725.1599401967445
+          },
+          "etaSamples": [
+            {
+              "q": 1.627,
+              "eta": 0.66
+            },
+            {
+              "q": 1.894,
+              "eta": 0.7
+            },
+            {
+              "q": 2.242,
+              "eta": 0.74
+            },
+            {
+              "q": 2.486,
+              "eta": 0.76
+            },
+            {
+              "q": 2.858,
+              "eta": 0.78
+            },
+            {
+              "q": 3.316,
+              "eta": 0.78
+            },
+            {
+              "q": 3.637,
+              "eta": 0.76
+            },
+            {
+              "q": 3.849,
+              "eta": 0.74
+            },
+            {
+              "q": 4.081,
+              "eta": 0.7
+            },
+            {
+              "q": 4.262,
+              "eta": 0.66
+            }
+          ],
+          "powerSamples": [
+            {
+              "q": 1.627,
+              "kw": 1.0918
+            },
+            {
+              "q": 1.894,
+              "kw": 1.2587
+            },
+            {
+              "q": 2.242,
+              "kw": 1.4385
+            },
+            {
+              "q": 2.486,
+              "kw": 1.5393
+            },
+            {
+              "q": 2.858,
+              "kw": 1.6487
+            },
+            {
+              "q": 3.316,
+              "kw": 1.727
+            },
+            {
+              "q": 3.637,
+              "kw": 1.7497
+            },
+            {
+              "q": 3.849,
+              "kw": 1.7401
+            },
+            {
+              "q": 4.081,
+              "kw": 1.7263
+            },
+            {
+              "q": 4.262,
+              "kw": 1.6898
+            }
+          ],
+          "qRangeGraph": [
+            1.618,
+            4.301
+          ],
+          "pRangeGraph": [
+            912.1,
+            1590.0
+          ]
+        }
+      ],
+      "calibration": {
+        "source": "vector paths of PDF page 3 (curves and grid), pixels in the cropped PNG at 300dpi",
+        "qAxis": {
+          "slope": 672.1726153961267,
+          "intercept": 273.31192681054745,
+          "unit": "thousand m3/h",
+          "pixelAxis": "x",
+          "labeledValues": [
+            0.8,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "maxResidualPx": 0.66
+        },
+        "pAxis": {
+          "slope": -666.7164176533355,
+          "intercept": 2423.9264217773707,
+          "unit": "Pa (full pressure Pv)",
+          "pixelAxis": "y",
+          "labeledValuesUsed": [
+            2000,
+            1000,
+            800,
+            600,
+            400,
+            300,
+            200
+          ],
+          "maxResidualPx": 2.49
+        },
+        "pdvAxis": {
+          "coeffC": 19.768,
+          "formula": "Pdv = coeffC * Q_thousand^2"
+        },
+        "cropBoxOnPage300dpi": [
+          1290,
+          1860,
+          2240,
+          3010
+        ],
+        "imageWidth": 950,
+        "imageHeight": 1150
+      }
+    }
+  ],
+  "notes": {
+    "method": "Curves, grid lines and eta/Ny lines were extracted from the vector paths of the catalog PDF (not from pixels); axes calibrated locally on labeled grid lines. Quadratics: P[Pa] = a*Q^2 + b*Q + c, Q in thousand m3/h, Pv = full pressure.",
+    "qRangeGraph": "Actual extent of the bold n=const curve on the graph (thousand m3/h). The catalog table rounds ranges (0.76-1.90/2.00 and 1.60-4.00); do not extrapolate the quadratic beyond qRangeGraph.",
+    "etaSamples": "Crossings of the n=const curve with the constant-efficiency lines (straight lines of slope 2 in log-log). eta label order matches lines sorted left to right by upper end.",
+    "powerSamples": "Ny arcs (blue) do not cross the n=const curves on these graphs, so kw is SHAFT power derived at each eta crossing: kw = Q*1000*P/(3.6e6*eta). Installed motor power Ny (blue arc value) = shaft power * K; see the task report for the K check.",
+    "pdvAxis": "Pdv = coeffC * Q_thousand^2, coeffC = geometric mean over the 6 labeled Pdv ticks (20,30,50,100,200,300 Pa)."
+  }
+}
