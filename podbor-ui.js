@@ -171,17 +171,26 @@
   // ---------- сводка и чертёж ----------
 
   function renderSummary(c) {
+    const isStatic = lastInput.calcType === 'static';
+    // Pdv = coeffC·Q²·ρ_t/ρ_20 (ось Pdv снята при 20°C); coeffC валидна, иначе статика не дала бы кандидата.
+    let staticFact = '';
+    if (isStatic) {
+      const qT = c.qFactM3h / 1000;
+      const pdv = c.calibration.pdvAxis.coeffC * qT * qT * window.PodborCalc.airDensityRatio(lastInput.tempC);
+      staticFact = (c.pFactPa - pdv).toFixed(0);
+    }
     const table = el('table');
     const rows = [
       ['Заданный расход', lastInput.qReqM3h + ' м³/ч'],
       ['Заданное давление', lastInput.pReqPa + ' Па (' + (lastInput.calcType === 'static' ? 'статический' : 'полный') + ' расчёт)'],
       ['Температура воздуха', lastInput.tempC + ' °C'],
       ['Исполнение', ISPOLNENIE_LABELS[lastInput.ispolnenie] || lastInput.ispolnenie],
-      ['Давление, скорректированное под расчёт', c.targetPPa.toFixed(0) + ' Па'],
+      ['Целевое полное давление' + (isStatic ? ' (статическое + Pdv)' : ''), c.targetPPa.toFixed(0) + ' Па'],
       ['Модель', modelName(c)],
       ['Обороты', c.rpmActual + ' об/мин'],
       ['Фактический расход', c.qFactM3h.toFixed(0) + ' м³/ч'],
-      ['Фактическое давление', c.pFactPa.toFixed(0) + ' Па'],
+      ['Фактическое полное давление', c.pFactPa.toFixed(0) + ' Па'],
+      ...(isStatic ? [['Фактическое статическое давление (полное − Pdv)', staticFact + ' Па']] : []),
       ['КПД', c.eta != null ? (c.eta * 100).toFixed(0) + '%' : 'КПД не подтверждён графиком'],
       ['Мощность на валу', c.shaftKw != null ? c.shaftKw.toFixed(2) + ' кВт' : 'не подтверждена графиком'],
       ['Установочная мощность (с запасом)', c.installedKw != null ? c.installedKw.toFixed(2) + ' кВт' : 'не подтверждена графиком'],
