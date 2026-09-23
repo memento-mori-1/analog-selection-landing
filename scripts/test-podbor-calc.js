@@ -205,6 +205,65 @@ function run() {
     assert.ok(r4.some((c) => c.typorazmer === '4'));
   }]);
 
+  // ---- Статический расчёт без откалиброванной оси Pdv (Fix round 1) ----
+  // Синтетические данные: горизонтальная кривая P=1000 Па; один диаметр с осью Pdv, второй без неё
+  // (разные варианты «отсутствия»: null, нет поля, не число, <=0).
+  const flatCurve = () => ({ rpmNominal: 1500, rpmActual: 1350, qRangeThousand: [0.1, 5], coeffs: { a: 0, b: 0, c: 1000 },
+    motors: [{ nominalKw: 5, type: 'M' }], etaSamples: [{ q: 0.1, eta: 0.6 }, { q: 5, eta: 0.6 }], powerSamples: [] });
+  const noPdvData = () => ({ typorazmery: { '2,5': { diameters: [
+    { d: 0.9, graphImage: 'a', calibration: { pdvAxis: { coeffC: 0 } }, curves: [flatCurve()] },
+    { d: 1.0, graphImage: 'b', calibration: { pdvAxis: { coeffC: 20 } }, curves: [flatCurve()] },
+    { d: 1.1, graphImage: 'c', calibration: { pdvAxis: null }, curves: [flatCurve()] }
+  ] }, '3,15': { diameters: [
+    { d: 0.9, graphImage: 'd', calibration: {}, curves: [flatCurve()] },
+    { d: 1.0, graphImage: 'e', curves: [flatCurve()] },
+    { d: 1.05, graphImage: 'f', calibration: { pdvAxis: { coeffC: 'x' } }, curves: [flatCurve()] },
+    { d: 1.1, graphImage: 'g', calibration: { pdvAxis: { coeffC: 15 } }, curves: [flatCurve()] }
+  ] } } });
+  const wideInput = (calcType) => ({ qReqM3h: 1000, pReqPa: 500, calcType, upPct: 1000, downPct: 100, marginPct: 0 });
+
+  tests.push(['selectCandidates: static + диаметр без оси Pdv пропускается, при full тот же диаметр участвует', () => {
+    const data = noPdvData();
+    const key = (c) => `${c.typorazmer}/${c.diameter}`;
+    const stat = PodborCalc.selectCandidates(data, wideInput('static')).map(key).sort();
+    const full = PodborCalc.selectCandidates(data, wideInput('full')).map(key).sort();
+    assert.deepStrictEqual(stat, ['2,5/1', '3,15/1.1']);
+    assert.deepStrictEqual(full, ['2,5/0.9', '2,5/1', '2,5/1.1', '3,15/0.9', '3,15/1', '3,15/1.05', '3,15/1.1']);
+  }]);
+
+  tests.push(['staticUnavailable: перечисляет ровно диаметры без валидной оси Pdv, в порядке обхода данных', () => {
+    assert.deepStrictEqual(PodborCalc.staticUnavailable(noPdvData()), [
+      { typorazmer: '2,5', diameter: 0.9 },
+      { typorazmer: '2,5', diameter: 1.1 },
+      { typorazmer: '3,15', diameter: 0.9 },
+      { typorazmer: '3,15', diameter: 1 },
+      { typorazmer: '3,15', diameter: 1.05 }
+    ]);
+  }]);
+
+  tests.push(['REAL: staticUnavailable на реальных данных пуст (все оси Pdv откалиброваны)', () => {
+    assert.deepStrictEqual(PodborCalc.staticUnavailable(REAL), []);
+  }]);
+
+  tests.push(['REAL: static даёт targetPPa больше, чем full, ровно на coeffC·Q² (Q в тыс. м3/ч)', () => {
+    const q = 1300, p = 640;
+    const full = PodborCalc.selectCandidates(REAL, realInput(q, p, { calcType: 'full' }));
+    const stat = PodborCalc.selectCandidates(REAL, realInput(q, p, { calcType: 'static' }));
+    assert.ok(full.length > 0 && stat.length > 0);
+    const seen = new Set();
+    for (const c of stat) {
+      const dia = REAL.typorazmery[c.typorazmer].diameters.find((d) => d.d === c.diameter);
+      const coeffC = dia.calibration.pdvAxis.coeffC;
+      assert.ok(coeffC > 0);
+      const f = full.find((x) => x.typorazmer === c.typorazmer && x.diameter === c.diameter);
+      const fullTarget = f ? f.targetPPa : p;
+      assert.ok(c.targetPPa > fullTarget, `static ${c.targetPPa} не больше full ${fullTarget}`);
+      assert.ok(Math.abs(c.targetPPa - fullTarget - coeffC * (q / 1000) * (q / 1000)) < 1e-6, `превышение не равно coeffC·Q²`);
+      seen.add(c.typorazmer + '/' + c.diameter);
+    }
+    assert.ok(seen.size > 0);
+  }]);
+
   let failed = 0;
   for (const [name, fn] of tests) {
     try {

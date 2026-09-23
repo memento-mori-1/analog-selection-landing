@@ -87,11 +87,31 @@
     return sorted.find((m) => m.nominalKw >= required) || null;
   }
 
+  // Валидная ось Pdv: число coeffC > 0 в dia.calibration.pdvAxis; иначе null.
+  function validPdvCoeffC(dia) {
+    const c = dia.calibration && dia.calibration.pdvAxis ? dia.calibration.pdvAxis.coeffC : null;
+    return typeof c === 'number' && Number.isFinite(c) && c > 0 ? c : null;
+  }
+
+  // Диаметры, для которых статический расчёт недоступен (ось Pdv не откалибрована), в порядке
+  // обхода данных. UI (Task 8) по ней показывает причину отключения статического варианта.
+  function staticUnavailable(data) {
+    const out = [];
+    for (const [typorazmerKey, typorazmer] of Object.entries(data.typorazmery)) {
+      for (const dia of typorazmer.diameters) {
+        if (validPdvCoeffC(dia) === null) out.push({ typorazmer: typorazmerKey, diameter: dia.d });
+      }
+    }
+    return out;
+  }
+
   function selectCandidates(data, input) {
     const candidates = [];
     for (const [typorazmerKey, typorazmer] of Object.entries(data.typorazmery)) {
       for (const dia of typorazmer.diameters) {
-        const pdvCoeffC = dia.calibration && dia.calibration.pdvAxis ? dia.calibration.pdvAxis.coeffC : null;
+        const pdvCoeffC = validPdvCoeffC(dia);
+        // Статический расчёт без оси Pdv молча стал бы полным (заниженный вентилятор) — пропускаем.
+        if (input.calcType === 'static' && pdvCoeffC === null) continue;
         const pTarget = correctToFullPressure({
           qReqM3h: input.qReqM3h,
           pReqPa: input.pReqPa,
@@ -147,7 +167,8 @@
     workingRange,
     installedPowerFactor,
     pickMotor,
-    selectCandidates
+    selectCandidates,
+    staticUnavailable
   };
 
   if (typeof module !== 'undefined' && module.exports) {
