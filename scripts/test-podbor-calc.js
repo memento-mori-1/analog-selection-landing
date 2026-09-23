@@ -264,6 +264,35 @@ function run() {
     assert.ok(seen.size > 0);
   }]);
 
+  // ---- Pdv и температура: ось Pdv снята при 20°C, Pdv ∝ плотности воздуха (Final fix wave, A) ----
+  tests.push(['correctToFullPressure: Pdv масштабируется по densityRatio; по умолчанию 1', () => {
+    const base = { qReqM3h: 6000, pReqPa: 1100, calcType: 'static', pdvCoeffC: 50 };
+    assert.ok(Math.abs(PodborCalc.correctToFullPressure(base) - (1100 + 50 * 36)) < 1e-9);
+    assert.ok(Math.abs(PodborCalc.correctToFullPressure(Object.assign({}, base, { densityRatio: 0.8 })) - (1100 + 50 * 36 * 0.8)) < 1e-9);
+    assert.strictEqual(PodborCalc.correctToFullPressure({ qReqM3h: 6000, pReqPa: 1100, calcType: 'full', pdvCoeffC: 50, densityRatio: 0.8 }), 1100);
+  }]);
+
+  tests.push(['selectCandidates: static при tempC=80 и -30: targetPPa - pReqPa = coeffC·Q²·airDensityRatio(t) (синтетика и реальные данные)', () => {
+    const q = 2000, qT = q / 1000;
+    for (const t of [80, -30, 20]) {
+      const ratio = PodborCalc.airDensityRatio(t);
+      const syn = PodborCalc.selectCandidates(noPdvData(), Object.assign(wideInput('static'), { qReqM3h: q, tempC: t }));
+      assert.ok(syn.length > 0, 'синтетика: нет кандидатов при t=' + t);
+      for (const c of syn) {
+        const dia = noPdvData().typorazmery[c.typorazmer].diameters.find((d) => d.d === c.diameter);
+        const coeffC = dia.calibration.pdvAxis.coeffC;
+        assert.ok(Math.abs(c.targetPPa - 500 - coeffC * qT * qT * ratio) < 1e-6, 't=' + t + ': ' + c.targetPPa);
+      }
+      const real = PodborCalc.selectCandidates(REAL, realInput(1300, 640, { calcType: 'static', tempC: t, upPct: 500, downPct: 100 }));
+      assert.ok(real.length > 0, 'реальные данные: нет кандидатов при t=' + t);
+      for (const c of real) {
+        const dia = REAL.typorazmery[c.typorazmer].diameters.find((d) => d.d === c.diameter);
+        const coeffC = dia.calibration.pdvAxis.coeffC;
+        assert.ok(Math.abs(c.targetPPa - 640 - coeffC * 1.3 * 1.3 * ratio) < 1e-6, 'REAL t=' + t + ': ' + c.targetPPa);
+      }
+    }
+  }]);
+
   let failed = 0;
   for (const [name, fn] of tests) {
     try {

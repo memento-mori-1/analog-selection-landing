@@ -3,10 +3,12 @@
     return coeffs.a * x * x + coeffs.b * x + coeffs.c;
   }
 
-  function correctToFullPressure({ qReqM3h, pReqPa, calcType, pdvCoeffC }) {
+  // Ось Pdv снята при 20°C, а Pdv = ρ·v²/2 пропорционально плотности воздуха: при другой температуре
+  // Pdv умножается на densityRatio (= ρ_t/ρ_20, см. airDensityRatio); по умолчанию 1 (20°C).
+  function correctToFullPressure({ qReqM3h, pReqPa, calcType, pdvCoeffC, densityRatio }) {
     if (calcType !== 'static') return pReqPa;
     const qThousand = qReqM3h / 1000;
-    const pdv = pdvCoeffC * qThousand * qThousand;
+    const pdv = pdvCoeffC * qThousand * qThousand * (densityRatio != null ? densityRatio : 1);
     return pReqPa + pdv;
   }
 
@@ -112,14 +114,15 @@
         const pdvCoeffC = validPdvCoeffC(dia);
         // Статический расчёт без оси Pdv молча стал бы полным (заниженный вентилятор) — пропускаем.
         if (input.calcType === 'static' && pdvCoeffC === null) continue;
+        const densityRatio = airDensityRatio(input.tempC != null ? input.tempC : 20);
         const pTarget = correctToFullPressure({
           qReqM3h: input.qReqM3h,
           pReqPa: input.pReqPa,
           calcType: input.calcType,
-          pdvCoeffC: pdvCoeffC || 0
+          pdvCoeffC: pdvCoeffC || 0,
+          densityRatio
         });
         const q0Thousand = input.qReqM3h / 1000;
-        const densityRatio = airDensityRatio(input.tempC != null ? input.tempC : 20);
         for (const curve of dia.curves) {
           const scaledCoeffs = {
             a: curve.coeffs.a * densityRatio,
