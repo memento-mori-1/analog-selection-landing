@@ -18,20 +18,73 @@ function run() {
     assert.strictEqual(px, 1200);
   }]);
 
-  tests.push(['renderOverlay очищает предыдущее содержимое перед отрисовкой (нет накопления точек)', () => {
-    const calls = [];
+  tests.push(['renderOverlay отрисовывает polyline и circle с корректными атрибутами', () => {
+    const elements = [];
     const fakeSvg = {
       children: ['old-point', 'old-parabola'],
-      removeChild(c) { calls.push('remove:' + c); this.children = this.children.filter((x) => x !== c); },
-      appendChild(c) { calls.push('append'); this.children.push(c); },
+      removeChild(c) { this.children = this.children.filter((x) => x !== c); },
+      appendChild(c) { this.children.push(c); },
       ownerDocument: {
-        createElementNS: () => ({ setAttribute() {} })
+        createElementNS: (ns, tag) => {
+          const el = { tag, attrs: {} };
+          el.setAttribute = function(k, v) { this.attrs[k] = v; };
+          elements.push(el);
+          return el;
+        }
       }
     };
     PodborOverlay.renderOverlay(fakeSvg, { qThousand: 2, pPa: 10, targetQThousand: 2, targetPPa: 10 }, calibration);
-    assert.ok(calls.includes('remove:old-point'));
-    assert.ok(calls.includes('remove:old-parabola'));
-    assert.ok(fakeSvg.children.length >= 1);
+
+    // Проверка: ровно 2 элемента, старые удалены
+    assert.strictEqual(fakeSvg.children.length, 2);
+    assert.ok(!fakeSvg.children.includes('old-point'));
+    assert.ok(!fakeSvg.children.includes('old-parabola'));
+
+    // Проверка: имена тегов и типы
+    assert.strictEqual(elements.length, 2);
+    assert.strictEqual(elements[0].tag, 'polyline');
+    assert.strictEqual(elements[1].tag, 'circle');
+
+    // Проверка circle: cx и cy совпадают с пикселями
+    const expectedCx = PodborOverlay.pixelForQ(2, calibration);
+    const expectedCy = PodborOverlay.pixelForP(10, calibration);
+    assert.strictEqual(parseFloat(elements[1].attrs.cx), expectedCx);
+    assert.strictEqual(parseFloat(elements[1].attrs.cy), expectedCy);
+
+    // Проверка polyline: points содержит вершину близко к целевой точке
+    const targetCx = PodborOverlay.pixelForQ(2, calibration);
+    const targetCy = PodborOverlay.pixelForP(10, calibration);
+    const points = elements[0].attrs.points.split(' ').map(p => p.split(',').map(parseFloat));
+    const hasPointNearTarget = points.some(([x, y]) =>
+      Math.abs(x - targetCx) < 1e-6 && Math.abs(y - targetCy) < 1e-6
+    );
+    assert.ok(hasPointNearTarget, `Парабола должна проходить через целевую точку (${targetCx}, ${targetCy})`);
+  }]);
+
+  tests.push(['renderOverlay защищен от нефинитных targetQThousand', () => {
+    const fakeSvg = {
+      children: ['old'],
+      removeChild(c) { this.children = this.children.filter((x) => x !== c); },
+      appendChild(c) { this.children.push(c); },
+      ownerDocument: {
+        createElementNS: (ns, tag) => ({ setAttribute() {} })
+      }
+    };
+    PodborOverlay.renderOverlay(fakeSvg, { qThousand: 2, pPa: 10, targetQThousand: 0, targetPPa: 10 }, calibration);
+    assert.strictEqual(fakeSvg.children.length, 0, 'SVG должен остаться пустым при targetQThousand=0');
+  }]);
+
+  tests.push(['renderOverlay защищен от неположительного qThousand', () => {
+    const fakeSvg = {
+      children: ['old'],
+      removeChild(c) { this.children = this.children.filter((x) => x !== c); },
+      appendChild(c) { this.children.push(c); },
+      ownerDocument: {
+        createElementNS: (ns, tag) => ({ setAttribute() {} })
+      }
+    };
+    PodborOverlay.renderOverlay(fakeSvg, { qThousand: 0, pPa: 10, targetQThousand: 2, targetPPa: 10 }, calibration);
+    assert.strictEqual(fakeSvg.children.length, 0, 'SVG должен остаться пустым при qThousand=0');
   }]);
 
   let failed = 0;

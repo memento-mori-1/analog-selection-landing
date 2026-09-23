@@ -15,6 +15,15 @@
 
   function renderOverlay(svgEl, point, calibration) {
     clearOverlay(svgEl);
+
+    // Защита от нефинитных/неположительных входов
+    if (!Number.isFinite(point.qThousand) || point.qThousand <= 0 ||
+        !Number.isFinite(point.pPa) || point.pPa <= 0 ||
+        !Number.isFinite(point.targetQThousand) || point.targetQThousand <= 0 ||
+        !Number.isFinite(point.targetPPa) || point.targetPPa <= 0) {
+      return;
+    }
+
     const doc = svgEl.ownerDocument;
     const ns = 'http://www.w3.org/2000/svg';
 
@@ -28,7 +37,10 @@
       const q = qMin + ((qMax - qMin) * i) / steps;
       const p = k * q * q;
       if (p <= 0) continue;
-      pathPoints.push(`${pixelForQ(q, calibration)},${pixelForP(p, calibration)}`);
+      const x = pixelForQ(q, calibration);
+      const y = pixelForP(p, calibration);
+      if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+      pathPoints.push(`${x},${y}`);
     }
     const path = doc.createElementNS ? doc.createElementNS(ns, 'polyline') : { setAttribute() {} };
     if (path.setAttribute) {
