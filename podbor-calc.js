@@ -131,8 +131,10 @@
           const pMin = pTarget * (1 - (input.downPct || 0) / 100);
           const pMax = pTarget * (1 + (input.upPct || 0) / 100);
           if (point.pPa < pMin || point.pPa > pMax) continue;
-          const eta = interpolateSamples(curve.etaSamples, point.qThousand);
-          const shaftKw = eta ? (point.pPa * point.qThousand * 1000) / (3600 * 1000 * eta) : null;
+          const etaRaw = interpolateSamples(curve.etaSamples, point.qThousand);
+          // КПД <= 0 физически бессмыслен: считаем неподтверждённым, чтобы eta === null <=> shaftKw === null.
+          const eta = etaRaw != null && etaRaw > 0 ? etaRaw : null;
+          const shaftKw = eta != null ? (point.pPa * point.qThousand * 1000) / (3600 * 1000 * eta) : null;
           const installedKw = shaftKw != null ? shaftKw * installedPowerFactor(shaftKw) : null;
           const motor = installedKw != null ? pickMotor(curve.motors, installedKw, input.marginPct || 0) : null;
           candidates.push({

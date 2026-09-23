@@ -87,6 +87,8 @@
   function clearResults() {
     els.candidateList.textContent = '';
     els.graphView.hidden = true;
+    // Поздний load/error прежней картинки не должен дорисовать оверлей в скрытый svg или дописать ошибку.
+    els.graphImg.onload = els.graphImg.onerror = null;
     window.PodborOverlay.clearOverlay(els.graphSvg);
     els.summary.textContent = '';
     els.chertyozhView.textContent = '';
@@ -243,7 +245,7 @@
     const excluded = window.PodborCalc.staticUnavailable(window.PODBOR_DATA);
     if (excluded.length === 0) return null;
     const names = excluded.map((e) => 'ВЦ 4-70-' + e.typorazmer + ' D=' + e.diameter + 'Dном').join('; ');
-    return 'Из статического расчёта исключены (на графике нет оси динамического давления Pdv): ' + names + '.';
+    return 'Из статического расчёта исключены (ось динамического давления Pdv для этого графика не откалибрована): ' + names + '.';
   }
 
   function runCalculation() {
