@@ -243,7 +243,10 @@ git commit -m "Добавить библиотеку оцифровки граф
 **Files:**
 - Create: `StartUp/scripts/digitize/data_2_5.json` (промежуточный результат оцифровки)
 - Create: `StartUp/scripts/test-data-2-5.js` (проверка против таблицы каталога)
-- Create: `StartUp/assets/podbor/2.5-D0.9.png` … `2.5-D1.1.png` (5 файлов, обрезанные графики)
+- Create: `StartUp/assets/podbor/2.5-D0.9.png`, `2.5-D0.95.png`, `2.5-D1.png`, `2.5-D1.05.png`,
+  `2.5-D1.1.png` (5 файлов, обрезанные графики — **имя для номинального диаметра — `2.5-D1.png`,
+  без `.0`**: так это число сериализуется в JS при сборке `podbor-data.js` в Task 5, и оба места
+  должны совпадать дословно)
 - Create: `StartUp/assets/podbor/2.5-drawing.png` (чертёж)
 
 **Interfaces:**
@@ -429,7 +432,10 @@ git commit -m "Оцифровать аэродинамические харак�
 **Files:**
 - Create: `StartUp/scripts/digitize/data_3_15.json`
 - Create: `StartUp/scripts/test-data-3-15.js`
-- Create: `StartUp/assets/podbor/3.15-D0.9.png` … `3.15-D1.1.png`, `3.15-drawing.png`
+- Create: `StartUp/assets/podbor/3.15-D0.9.png`, `3.15-D0.95.png`, `3.15-D1.png`,
+  `3.15-D1.05.png`, `3.15-D1.1.png`, `3.15-drawing.png` (номинальный диаметр — файл
+  `3.15-D1.png`, без `.0`, как и в Task 2 — так число сериализуется в JS при сборке
+  `podbor-data.js` в Task 5)
 
 Соответствие оборотов (акустическая таблица, стр. 13): **1500 (ном.) → 1350 (факт.)**,
 **3000 (ном.) → 2850 (факт.)**.
@@ -515,7 +521,9 @@ git commit -m "Оцифровать аэродинамические харак�
 **Files:**
 - Create: `StartUp/scripts/digitize/data_4.json`
 - Create: `StartUp/scripts/test-data-4.js`
-- Create: `StartUp/assets/podbor/4-D0.9.png` … `4-D1.1.png`, `4-drawing.png`
+- Create: `StartUp/assets/podbor/4-D0.9.png`, `4-D0.95.png`, `4-D1.png`, `4-D1.05.png`,
+  `4-D1.1.png`, `4-drawing.png` (номинальный диаметр — файл `4-D1.png`, без `.0`, как и в
+  Task 2 — так число сериализуется в JS при сборке `podbor-data.js` в Task 5)
 
 Соответствие оборотов (акустическая таблица, стр. 17): **1000 (ном.) → 880 (факт.)**,
 **1500 (ном.) → 1380 (факт.)**, **3000 (ном.) → 2850 (факт.)**.
