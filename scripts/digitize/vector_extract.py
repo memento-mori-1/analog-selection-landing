@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import lib  # noqa: E402
 
 Z = 300 / 72  # pt -> px at 300 dpi
+MIN_DIAG_PX = 100  # диагонали eta длиннее; контуры букв короче
 NPTS = 9  # точек на кривую для квадратичной аппроксимации
 
 
@@ -27,16 +28,34 @@ def bezier(p0, p1, p2, p3, n=60):
     return ((1 - t) ** 3) * p0 + 3 * ((1 - t) ** 2) * t * p1 + 3 * (1 - t) * t * t * p2 + t ** 3 * p3
 
 
-def path_points(dr):
-    """Список полилиний (в пикселях 300 dpi) для одного нарисованного пути."""
-    out = []
+def path_chains(dr, tol=1.0):
+    """Нарисованный путь -> список связных цепочек полилиний (в пикселях 300 dpi).
+
+    В некоторых PDF (ВЦ 4-70-4, стр. 1) две кривые n=const слиты в ОДИН путь: между концом одного сегмента
+    и началом следующего разрыв (> tol px). Такой путь режется на отдельные цепочки, по одной на кривую."""
+    chains, cur, prev_end = [], [], None
     for it in dr['items']:
         if it[0] == 'c':
             P = [np.array([q.x * Z, q.y * Z]) for q in it[1:5]]
-            out.append(bezier(*P))
+            seg, start, end = bezier(*P), P[0], P[3]
         elif it[0] == 'l':
-            out.append(np.array([[it[1].x * Z, it[1].y * Z], [it[2].x * Z, it[2].y * Z]]))
-    return out
+            start, end = np.array([it[1].x * Z, it[1].y * Z]), np.array([it[2].x * Z, it[2].y * Z])
+            seg = np.array([start, end])
+        else:
+            continue
+        if prev_end is not None and np.hypot(*(start - prev_end)) > tol:
+            chains.append(cur)
+            cur = []
+        cur.append(seg)
+        prev_end = end
+    if cur:
+        chains.append(cur)
+    return chains
+
+
+def path_points(dr):
+    """Список полилиний (в пикселях 300 dpi) для одного нарисованного пути."""
+    return [seg for ch in path_chains(dr) for seg in ch]
 
 
 def in_box(rect, b):
@@ -51,15 +70,24 @@ def collect(page, frame):
             continue
         w = dr['width']
         if w > 1.0:
-            if in_box(dr['rect'], frame):
-                bold.append(np.vstack(path_points(dr)))
+            chains = path_chains(dr)
+            if len(chains) == 1:
+                if in_box(dr['rect'], frame):
+                    bold.append(np.vstack(chains[0]))
+            else:  # несколько кривых слиты в один путь: каждая цепочка - отдельная кривая
+                for ch in chains:
+                    poly = np.vstack(ch)
+                    r = pymupdf.Rect(poly[:, 0].min() / Z, poly[:, 1].min() / Z, poly[:, 0].max() / Z, poly[:, 1].max() / Z)
+                    if in_box(r, frame):
+                        bold.append(poly)
         elif not (dr['color'] is not None and dr['color'][2] > 0.5 and dr['color'][0] < 0.3):  # синие дуги Ny пропускаем
             # Диагонали eta проверяем по отрезкам: в некоторых PDF (ВЦ 4-70-3,15, стр. 3) они слиты
             # в один путь с линиями сетки, и bbox пути выходит за рамку графика.
             for it in dr['items']:
                 if it[0] == 'l':
                     ax, ay, bx, by = it[1].x * Z, it[1].y * Z, it[2].x * Z, it[2].y * Z
-                    if abs(ax - bx) > 0.3 and abs(ay - by) > 0.3 and in_box(pymupdf.Rect(min(ax, bx) / Z, min(ay, by) / Z, max(ax, bx) / Z, max(ay, by) / Z), frame):
+                    # короткие отрезки - контуры букв подписей (ВЦ 4-70-4), а не линии eta
+                    if math.hypot(ax - bx, ay - by) > MIN_DIAG_PX and abs(ax - bx) > 0.3 and abs(ay - by) > 0.3 and in_box(pymupdf.Rect(min(ax, bx) / Z, min(ay, by) / Z, max(ax, bx) / Z, max(ay, by) / Z), frame):
                         diag.append(((ax, ay), (bx, by)))
     return bold, diag
 
@@ -117,7 +145,7 @@ def cmd_inspect(args):
                 k = round(ax, 1)
                 V[k][0] = min(V[k][0], ay, by)
                 V[k][1] = max(V[k][1], ay, by)
-            else:
+            elif math.hypot(ax - bx, ay - by) > MIN_DIAG_PX:
                 print('diagonal (eta) px', round(ax), round(ay), round(bx), round(by))
     print('horizontal grid lines  y: xmin-xmax  (подписанные линии выступают левее рамки)')
     print('; '.join(f'{k}:{v[0]:.0f}-{v[1]:.0f}' for k, v in sorted(H.items())))
@@ -129,8 +157,6 @@ def cmd_run(args):
     spec = json.load(open(args.spec, encoding='utf8'))
     data = json.load(open(args.data, encoding='utf8'))
     doc = pymupdf.open(args.pdf)
-    q_vals = spec['qValues']
-    pdv_vals = spec['pdvValues']
     os.makedirs(args.out_dir, exist_ok=True)
     page_imgs = {}
 
@@ -142,6 +168,9 @@ def cmd_run(args):
     for dia in data['diameters']:
         dv = dia['d']
         g = spec['graphs'][f'{dv:g}']
+        # подписи осей по умолчанию общие для типоразмера; график может задать свои (`qValues`/`pdvValues`)
+        q_vals = g.get('qValues', spec['qValues'])
+        pdv_vals = g.get('pdvValues', spec['pdvValues'])
         bold, diag = collect(doc[g['page']], g['frame'])
         # нижняя (по картинке) кривая = меньшие обороты
         bold.sort(key=lambda b: -b[:, 1].mean())
