@@ -46,8 +46,11 @@ JS-модулей — тот же принцип, что и у `scripts/check-la
 - Значения по умолчанию формы: тип расчёта — «Полный»; отклонение вверх/вниз — 30% / 15%;
   температура — 20 °C.
 - Мощность двигателя для найденной аэродинамической кривой — наименьший вариант двигателя из
-  каталога, чья номинальная мощность ≥ расчётная мощность на валу × (1 + резерв мощности из
-  формы, %).
+  каталога, чья номинальная мощность ≥ установочная мощность = (мощность на валу × K) ×
+  (1 + резерв мощности из формы, %), где K — стандартный коэффициент запаса по ступеням мощности
+  на валу (<0,5 кВт: 1,5; 0,5–1: 1,3; 1–2: 1,2; 2–5: 1,15; >5: 1,1).
+- Рабочий диапазон Q кривой = диапазон из таблицы каталога ∩ реально нарисованный участок
+  кривой (`qRangeGraph`); за него квадратичную аппроксимацию не экстраполировать.
 
 ## Review Focus
 
@@ -505,9 +508,20 @@ git commit -m "Оцифровать аэродинамические харак�
 }
 ```
 
-- [ ] **Step 1-7:** повторить шаги Task 2 (сохранить скелет → падающий тест по образцу
-  `test-data-2-5.js`, только читающий `data_3_15.json` → оцифровать 5 графиков со стр. 1 и 3
-  `ВЦ 4-70-3,15.pdf` → вырезать чертёж со стр. 2 → тест проходит → commit).
+- [ ] **Step 1-7:** повторить шаги Task 2 (сохранить скелет → падающий тест → оцифровать 5
+  графиков со стр. 1 и 3 `ВЦ 4-70-3,15.pdf` → вырезать чертёж со стр. 2 → тест проходит →
+  commit), **но с решениями, принятыми по итогам Task 2** (Ruling'и в журнале):
+  - Использовать **уже закоммиченный инструмент** `scripts/digitize/vector_extract.py` +
+    `README.md` (векторная оцифровка через PyMuPDF `get_drawings`, не трассировка по пикселям):
+    написать `spec_3_15.json` по образцу `spec_2_5.json`, запустить `run`. Прочитать README
+    первым.
+  - Тест `scripts/test-data-3-15.js` — копия **закоммиченного** `scripts/test-data-2-5.js` (с
+    зажимом Q к `qRangeGraph`), не шаблона из Task 2 плана; допуск 8% не менять.
+  - В JSON для каждой кривой должны быть `qRangeGraph`/`pRangeGraph` (как в `data_2_5.json`).
+  - Проверить коэффициент установочной мощности K: каталожная Ny = мощность на валу × K
+    (стандартные K: <0,5 кВт — 1,5; 0,5–1 — 1,3; 1–2 — 1,2; 2–5 — 1,15; >5 — 1,1). Для этого
+    сравнить `powerSamples.kw` со значениями дуг Ny на графиках и записать в отчёт, совпадает ли
+    K с этой таблицей для 0,25–2,2 кВт. Расхождения — в отчёт, не подгонять.
 
 Ожидаемый commit message: `Оцифровать аэродинамические характеристики ВЦ 4-70-3,15`.
 
@@ -620,7 +634,15 @@ git commit -m "Оцифровать аэродинамические харак�
 ```
 
 - [ ] **Step 1-7:** повторить шаги Task 2 (15 кривых вместо 10 — по 3 на каждый из 5 диаметров;
-  исходник — `ВЦ 4-70-4.pdf`, график D=Dном на стр. 1, остальные 4 на стр. 3, чертёж на стр. 2).
+  исходник — `ВЦ 4-70-4.pdf`, график D=Dном на стр. 1, остальные 4 на стр. 3, чертёж на стр. 2),
+  **с теми же решениями, что в Task 3**: использовать закоммиченный
+  `scripts/digitize/vector_extract.py` (+ `spec_4.json` по образцу `spec_2_5.json`; прочитать
+  README первым), тест — копия закоммиченного `scripts/test-data-2-5.js` с зажимом Q к
+  `qRangeGraph`, поля `qRangeGraph`/`pRangeGraph` обязательны, проверить K для мощностей
+  0,18–7,5 кВт (стандартные K: <0,5 — 1,5; 0,5–1 — 1,3; 1–2 — 1,2; 2–5 — 1,15; >5 — 1,1) и
+  записать расхождения в отчёт. Отличие от 2,5/3,15: **три** кривые оборотов на графике
+  (880 / 1380 / 2850), инструмент должен это поддержать — если нет, расширить его минимально и
+  сказать об этом в отчёте.
 
 Ожидаемый commit message: `Оцифровать аэродинамические характеристики ВЦ 4-70-4`.
 
@@ -640,7 +662,9 @@ git commit -m "Оцифровать аэродинамические харак�
   `PodborCalc.airDensityRatio(tempC) -> number`,
   `PodborCalc.intersectWithNetwork(coeffs, qRangeThousand, q0Thousand, p0Pa) -> {qThousand,pPa}|null`,
   `PodborCalc.interpolateSamples(samples, qThousand) -> number|null`,
-  `PodborCalc.pickMotor(motors, shaftKw, marginPct) -> motor|null`,
+  `PodborCalc.workingRange(curve) -> [qMin, qMax]` (таблица ∩ `qRangeGraph`),
+  `PodborCalc.installedPowerFactor(shaftKw) -> K` (кандидат получает поле `installedKw`),
+  `PodborCalc.pickMotor(motors, requiredKw, marginPct) -> motor|null`,
   `PodborCalc.selectCandidates(data, input) -> candidate[]` (принимает опционально `input.tempC`,
   по умолчанию 20). Используются в Task 7-8 (`podbor.html`).
 
@@ -768,6 +792,43 @@ function run() {
     assert.ok(hot[0].pFactPa < cold[0].pFactPa, `ожидали меньшее давление при 80°C (${hot[0].pFactPa}) чем при 20°C (${cold[0].pFactPa})`);
   }]);
 
+  tests.push(['workingRange: пересечение диапазона таблицы и нарисованного участка кривой', () => {
+    assert.deepStrictEqual(PodborCalc.workingRange({ qRangeThousand: [0.4, 0.9] }), [0.4, 0.9]);
+    assert.deepStrictEqual(PodborCalc.workingRange({ qRangeThousand: [0.4, 0.9], qRangeGraph: [0.43, 0.874] }), [0.43, 0.874]);
+    assert.deepStrictEqual(PodborCalc.workingRange({ qRangeThousand: [0.8, 1.8], qRangeGraph: [0.7, 1.92] }), [0.8, 1.8]);
+  }]);
+
+  tests.push(['installedPowerFactor: ступени стандартных коэффициентов запаса', () => {
+    assert.strictEqual(PodborCalc.installedPowerFactor(0.3), 1.5);
+    assert.strictEqual(PodborCalc.installedPowerFactor(0.7), 1.3);
+    assert.strictEqual(PodborCalc.installedPowerFactor(1.5), 1.2);
+    assert.strictEqual(PodborCalc.installedPowerFactor(3), 1.15);
+    assert.strictEqual(PodborCalc.installedPowerFactor(6), 1.1);
+  }]);
+
+  tests.push(['selectCandidates: двигатель подбирается по установочной мощности (вал × K), а не по валу', () => {
+    // P=1000 Па на всём диапазоне, сеть через (1 тыс. м3/ч, 1000 Па) -> пересечение Q=1, P=1000
+    // КПД 0.6 -> вал = 1000*1000/(3.6e6*0.6) = 0.463 кВт; K=1.5 -> установочная 0.694 -> 0.75 кВт, а не 0.55
+    const curve = { rpmNominal: 1500, rpmActual: 1350, qRangeThousand: [0.1, 5], coeffs: { a: 0, b: 0, c: 1000 },
+      motors: [{ nominalKw: 0.55, type: 'S' }, { nominalKw: 0.75, type: 'L' }],
+      etaSamples: [{ q: 0.1, eta: 0.6 }, { q: 5, eta: 0.6 }], powerSamples: [] };
+    const data = { typorazmery: { '2,5': { diameters: [{ d: 1.0, graphImage: 'x', calibration: {}, curves: [curve] }] } } };
+    const result = PodborCalc.selectCandidates(data, { qReqM3h: 1000, pReqPa: 1000, calcType: 'full', upPct: 10, downPct: 10, marginPct: 0 });
+    assert.strictEqual(result.length, 1);
+    assert.ok(Math.abs(result[0].shaftKw - 0.463) < 0.005);
+    assert.ok(Math.abs(result[0].installedKw - 0.694) < 0.005);
+    assert.strictEqual(result[0].motor.type, 'L');
+  }]);
+
+  tests.push(['selectCandidates: не выходит за нарисованный участок кривой (qRangeGraph)', () => {
+    const curve = { rpmNominal: 1500, rpmActual: 1350, qRangeThousand: [0.1, 5], qRangeGraph: [0.4, 0.8], coeffs: { a: 0, b: 0, c: 1000 },
+      motors: [{ nominalKw: 5, type: 'M' }], etaSamples: [{ q: 0.4, eta: 0.6 }, { q: 0.8, eta: 0.6 }], powerSamples: [] };
+    const data = { typorazmery: { '2,5': { diameters: [{ d: 1.0, graphImage: 'x', calibration: {}, curves: [curve] }] } } };
+    // пересечение с сетью через (1, 1000) лежит в Q=1 — вне нарисованного участка [0.4, 0.8]
+    const result = PodborCalc.selectCandidates(data, { qReqM3h: 1000, pReqPa: 1000, calcType: 'full', upPct: 50, downPct: 50, marginPct: 0 });
+    assert.deepStrictEqual(result, []);
+  }]);
+
   tests.push(['selectCandidates: сортирует по КПД по убыванию', () => {
     const curveLow = { rpmNominal: 1500, rpmActual: 1350, qRangeThousand: [0, 10], coeffs: { a: 0, b: 0, c: 100 }, motors: [{ nominalKw: 10, type: 'M' }], etaSamples: [{ q: 0, eta: 0.4 }, { q: 10, eta: 0.4 }], powerSamples: [] };
     const curveHigh = { rpmNominal: 1500, rpmActual: 1350, qRangeThousand: [0, 10], coeffs: { a: 0, b: 0, c: 100 }, motors: [{ nominalKw: 10, type: 'M' }], etaSamples: [{ q: 0, eta: 0.8 }, { q: 10, eta: 0.8 }], powerSamples: [] };
@@ -869,6 +930,25 @@ Expected: `Error: Cannot find module '../podbor-calc.js'`.
     return null;
   }
 
+  // Рабочий диапазон Q кривой: диапазон из таблицы каталога ∩ реально нарисованный участок
+  // кривой (qRangeGraph, см. Task 2). Каталог округляет Q-диапазон одинаково для всех диаметров,
+  // а нарисованная кривая заканчивается раньше/позже — за её концом квадратика не годится.
+  function workingRange(curve) {
+    const [tMin, tMax] = curve.qRangeThousand;
+    if (!curve.qRangeGraph) return [tMin, tMax];
+    return [Math.max(tMin, curve.qRangeGraph[0]), Math.min(tMax, curve.qRangeGraph[1])];
+  }
+
+  // Каталожная Ny на графике — установочная мощность двигателя = мощность на валу × K
+  // (стандартные коэффициенты запаса; Task 2 подтвердил ~1,5 для Ny<=0,25 и ~1,3 для 0,55–0,75 кВт).
+  function installedPowerFactor(shaftKw) {
+    if (shaftKw < 0.5) return 1.5;
+    if (shaftKw < 1) return 1.3;
+    if (shaftKw < 2) return 1.2;
+    if (shaftKw < 5) return 1.15;
+    return 1.1;
+  }
+
   function pickMotor(motors, shaftKw, marginPct) {
     const required = shaftKw * (1 + (marginPct || 0) / 100);
     const sorted = [...motors].sort((a, b) => a.nominalKw - b.nominalKw);
@@ -894,14 +974,15 @@ Expected: `Error: Cannot find module '../podbor-calc.js'`.
             b: curve.coeffs.b * densityRatio,
             c: curve.coeffs.c * densityRatio
           };
-          const point = intersectWithNetwork(scaledCoeffs, curve.qRangeThousand, q0Thousand, pTarget);
+          const point = intersectWithNetwork(scaledCoeffs, workingRange(curve), q0Thousand, pTarget);
           if (!point) continue;
           const pMin = pTarget * (1 - (input.downPct || 0) / 100);
           const pMax = pTarget * (1 + (input.upPct || 0) / 100);
           if (point.pPa < pMin || point.pPa > pMax) continue;
           const eta = interpolateSamples(curve.etaSamples, point.qThousand);
           const shaftKw = eta ? (point.pPa * point.qThousand * 1000) / (3600 * 1000 * eta) : null;
-          const motor = shaftKw != null ? pickMotor(curve.motors, shaftKw, input.marginPct || 0) : null;
+          const installedKw = shaftKw != null ? shaftKw * installedPowerFactor(shaftKw) : null;
+          const motor = installedKw != null ? pickMotor(curve.motors, installedKw, input.marginPct || 0) : null;
           candidates.push({
             typorazmer: typorazmerKey,
             diameter: dia.d,
@@ -913,6 +994,7 @@ Expected: `Error: Cannot find module '../podbor-calc.js'`.
             pFactPa: point.pPa,
             eta: eta,
             shaftKw: shaftKw,
+            installedKw: installedKw,
             motor: motor,
             targetQThousand: q0Thousand,
             targetPPa: pTarget
@@ -930,6 +1012,8 @@ Expected: `Error: Cannot find module '../podbor-calc.js'`.
     airDensityRatio,
     intersectWithNetwork,
     interpolateSamples,
+    workingRange,
+    installedPowerFactor,
     pickMotor,
     selectCandidates
   };
@@ -1298,6 +1382,7 @@ git commit -m "Добавить страницу демо-подбора: фор
         <tr><th>Фактическое давление</th><td>${c.pFactPa.toFixed(0)} Па</td></tr>
         <tr><th>КПД</th><td>${c.eta != null ? (c.eta * 100).toFixed(0) + '%' : 'не подтверждён графиком'}</td></tr>
         <tr><th>Мощность на валу</th><td>${c.shaftKw != null ? c.shaftKw.toFixed(2) + ' кВт' : 'не подтверждена графиком'}</td></tr>
+        <tr><th>Установочная мощность (с запасом)</th><td>${c.installedKw != null ? c.installedKw.toFixed(2) + ' кВт' : 'не подтверждена графиком'}</td></tr>
         <tr><th>Двигатель</th><td>${c.motor ? `${c.motor.type}, ${c.motor.nominalKw} кВт` : 'не подобран каталогом'}</td></tr>
       </table>
     `;
