@@ -165,6 +165,7 @@ def cmd_run(args):
             page_imgs[i] = lib.render_page(args.pdf, i, 300)
         return page_imgs[i]
 
+    c_measured = {}  # d -> C, измеренная по меткам шкалы Pdv (для необязательной `pdvCoeffOverride`)
     for dia in data['diameters']:
         dv = dia['d']
         g = spec['graphs'][f'{dv:g}']
@@ -187,6 +188,7 @@ def cmd_run(args):
         pres = max(abs(pc['slope'] * math.log10(v) + pc['intercept'] - y) for y, v in sel)
         qs = [lib.value_at_pixel(x, qc) for x in g['pdvx']]
         C = math.exp(np.mean([math.log(pv / q ** 2) for pv, q in zip(pdv_vals, qs)]))
+        c_measured[f'{dv:g}'] = C
         cx0, cy0, cx1, cy1 = g['crop']
         dia['calibration'] = {
             'source': 'vector paths of PDF page %d (curves and grid), pixels in the cropped PNG at 300dpi' % (g['page'] + 1),
@@ -227,6 +229,20 @@ def cmd_run(args):
         img.save(os.path.join(args.out_dir, name))
         print(name, img.size)
 
+    # Необязательное переопределение coeffC: Pdv = rho*v^2/2 зависит только от Q и площади выхода, поэтому C одинакова
+    # у всех диаметров типоразмера. Если на некоторых графиках шкала Pdv напечатана со сдвигом (ВЦ 4-70-4: D=1.05, 1.1),
+    # spec задаёт {"graphs": [...], "from": [...], "note": "..."}: coeffC этих графиков = среднее измеренных C графиков
+    # `from` (округление до 2 знаков), измеренное значение сохраняется в `coeffCMeasured`.
+    ov = spec.get('pdvCoeffOverride')
+    if ov:
+        ref = round(float(np.mean([c_measured[k] for k in ov['from']])), 2)
+        for dia in data['diameters']:
+            k = f"{dia['d']:g}"
+            if k in ov['graphs']:
+                pd = dia['calibration']['pdvAxis']
+                pd['coeffCMeasured'] = pd['coeffC']
+                pd['coeffC'] = ref
+                pd['note'] = ov['note']
     data['notes'] = spec['notes']
     json.dump(data, open(args.out_json, 'w', encoding='utf8'), ensure_ascii=False, indent=2)
     dg = spec.get('drawing')

@@ -1396,8 +1396,10 @@
           "maxResidualPx": 0.96
         },
         "pdvAxis": {
-          "coeffC": 9.013,
-          "formula": "Pdv = coeffC * Q_thousand^2"
+          "coeffC": 7.6,
+          "formula": "Pdv = coeffC * Q_thousand^2",
+          "coeffCMeasured": 9.013,
+          "note": "Pdv scale is printed shifted ~20 px left relative to the Q scale on these two graphs (all six labeled marks uniformly, measured C ~9.0). Pdv depends only on Q and the outlet area, so C is the same for all diameters; coeffC is the mean of the consistent graphs D=0.9, 0.95, 1.0."
         },
         "cropBoxOnPage300dpi": [
           320,
@@ -1727,8 +1729,10 @@
           "maxResidualPx": 2.16
         },
         "pdvAxis": {
-          "coeffC": 9.004,
-          "formula": "Pdv = coeffC * Q_thousand^2"
+          "coeffC": 7.6,
+          "formula": "Pdv = coeffC * Q_thousand^2",
+          "coeffCMeasured": 9.004,
+          "note": "Pdv scale is printed shifted ~20 px left relative to the Q scale on these two graphs (all six labeled marks uniformly, measured C ~9.0). Pdv depends only on Q and the outlet area, so C is the same for all diameters; coeffC is the mean of the consistent graphs D=0.9, 0.95, 1.0."
         },
         "cropBoxOnPage300dpi": [
           1295,
