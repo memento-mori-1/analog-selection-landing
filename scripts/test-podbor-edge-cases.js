@@ -17,11 +17,24 @@ function run() {
 
   const baseInput = { qReqM3h: 600, pReqPa: 500, calcType: 'full', upPct: 30, downPct: 15, marginPct: 0 };
 
-  tests.push(['Отклонение 0% не находит кандидатов, если точное совпадение маловероятно', () => {
-    const data = makeData({}, { coeffs: { a: -50, b: 0, c: 150 } });
-    // заданная точка сильно не совпадает с кривой
-    const result = PodborCalc.selectCandidates(data, { qReqM3h: 500, pReqPa: 900, calcType: 'full', upPct: 0, downPct: 0, marginPct: 0 });
-    assert.strictEqual(result.length, 0);
+  tests.push(['Нулевой допуск отсекает кандидата, чьё давление отличается от цели; допуск 30% вверх его пропускает', () => {
+    // Кривая P = -500·Q² + 1000, сеть через (0,6 тыс. м³/ч; 600 Па): P = 600·(Q/0,6)².
+    // Пересечение: 1000 - 500·Q² = (600/0,36)·Q²  =>  Q² = 1000 / (500 + 600/0,36).
+    const data = makeData({}, { coeffs: { a: -500, b: 0, c: 1000 }, motors: [{ nominalKw: 5, type: 'M' }] });
+    const k = 600 / (0.6 * 0.6);
+    const qExpected = Math.sqrt(1000 / (500 + k));
+    const pExpected = -500 * qExpected * qExpected + 1000;
+    assert.ok(qExpected >= 0.4 && qExpected <= 0.9, 'пересечение должно лежать в рабочем диапазоне Q');
+    assert.ok(Math.abs(pExpected - 600) > 100, 'давление пересечения должно заметно отличаться от цели');
+    const input = { qReqM3h: 600, pReqPa: 600, calcType: 'full', marginPct: 0 };
+    // (2) допуск вверх 30% пропускает кандидата: пересечение реально есть (иначе (1) было бы вакуумным)
+    const withUp = PodborCalc.selectCandidates(data, Object.assign({}, input, { upPct: 30, downPct: 0 }));
+    assert.strictEqual(withUp.length, 1);
+    assert.ok(Math.abs(withUp[0].pFactPa - pExpected) < 0.5, 'pFactPa=' + withUp[0].pFactPa + ', ожидалось ' + pExpected);
+    assert.ok(Math.abs(withUp[0].qFactM3h - qExpected * 1000) < 1, 'qFactM3h=' + withUp[0].qFactM3h);
+    // (1) нулевой допуск: то же пересечение (~769 Па) не равно цели 600 Па, значит кандидата нет
+    const zero = PodborCalc.selectCandidates(data, Object.assign({}, input, { upPct: 0, downPct: 0 }));
+    assert.strictEqual(zero.length, 0);
   }]);
 
   tests.push(['Статика для диаметра без оцифрованной оси Pdv: диаметр пропускается, исключение не бросается', () => {
