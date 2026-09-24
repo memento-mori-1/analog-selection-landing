@@ -53,14 +53,27 @@ function run() {
     assert.deepStrictEqual(PodborCalc.staticUnavailable(data), [{ typorazmer: '2,5', diameter: 1.0 }]);
   }]);
 
-  tests.push(['Кандидат без КПД получает eta=null, мощность=null и мотор=null, а не выдуманное число', () => {
+  tests.push(['Кандидат без КПД: eta, мощность на валу и установочная = null; двигатель — только из таблицы каталога, не выдуманный', () => {
     const data = makeData({}, { etaSamples: [] });
     const result = PodborCalc.selectCandidates(data, baseInput);
     assert.strictEqual(result.length, 1);
     assert.strictEqual(result[0].eta, null);
     assert.strictEqual(result[0].shaftKw, null);
     assert.strictEqual(result[0].installedKw, null);
+    // точка внутри диапазона таблицы → двигатель берётся из строки каталога (число не придумано)
+    assert.strictEqual(result[0].inTableRange, true);
+    assert.strictEqual(result[0].motorBasis, 'table');
+    assert.ok(result[0].motor && result[0].catalogMotors.some((m) => m.type === result[0].motor.type));
+  }]);
+
+  tests.push(['Кандидат без КПД ЗА пределами диапазона таблицы: мотор = null (ни расчёта, ни таблицы, подставлять нечего)', () => {
+    // таблица покрывает только [0.1, 0.3], нарисованная кривая — [0.4, 0.9]; точка Q=0.6 вне таблицы
+    const data = makeData({}, { etaSamples: [], qRangeThousand: [0.1, 0.3], qRangeGraph: [0.4, 0.9] });
+    const result = PodborCalc.selectCandidates(data, baseInput);
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result[0].inTableRange, false);
     assert.strictEqual(result[0].motor, null);
+    assert.strictEqual(result[0].motorBasis, null);
   }]);
 
   tests.push(['КПД равен 0 или отрицателен: eta=null (КПД не подтверждён), а не eta=0 при shaftKw=null', () => {
@@ -71,7 +84,7 @@ function run() {
       assert.strictEqual(result[0].eta, null, 'eta=' + badEta);
       assert.strictEqual(result[0].shaftKw, null);
       assert.strictEqual(result[0].installedKw, null);
-      assert.strictEqual(result[0].motor, null);
+      assert.strictEqual(result[0].motorBasis, 'table', 'без КПД двигатель возможен только из таблицы');
     }
   }]);
 

@@ -108,18 +108,69 @@ function run() {
     assert.strictEqual(PodborCalc.installedPowerFactor(6), 1.1);
   }]);
 
-  tests.push(['selectCandidates: двигатель подбирается по установочной мощности (вал × K), а не по валу', () => {
+  tests.push(['selectCandidates: ЗА пределами диапазона таблицы двигатель подбирается только по графику (вал ≤ допустимого для двигателя)', () => {
     // P=1000 Па на всём диапазоне, сеть через (1 тыс. м3/ч, 1000 Па) -> пересечение Q=1, P=1000
-    // КПД 0.6 -> вал = 1000*1000/(3.6e6*0.6) = 0.463 кВт; K=1.5 -> установочная 0.694 -> 0.75 кВт, а не 0.55
+    // КПД 0.6 -> вал = 1000*1000/(3.6e6*0.6) = 0.463 кВт; 0.55 кВт несёт по валу 0.55/1.29 = 0.426 (с допуском 0.439) -> не проходит, 0.75 проходит
+    // Диапазон таблицы [0.1, 0.5] не содержит Q=1 (нарисованная кривая шире таблицы: qRangeGraph [0.1, 5]).
+    const curve = { rpmNominal: 1500, rpmActual: 1350, qRangeThousand: [0.1, 0.5], qRangeGraph: [0.1, 5], coeffs: { a: 0, b: 0, c: 1000 },
+      motors: [{ nominalKw: 0.55, type: 'S' }, { nominalKw: 0.75, type: 'L' }],
+      etaSamples: [{ q: 0.1, eta: 0.6 }, { q: 5, eta: 0.6 }], powerSamples: [] };
+    const data = { typorazmery: { '2,5': { diameters: [{ d: 1.0, graphImage: 'x', calibration: {}, curves: [curve] }] } } };
+    const result = PodborCalc.selectCandidates(data, { qReqM3h: 1000, pReqPa: 1000, calcType: 'full', upPct: 10, downPct: 10, marginPct: 0 });
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result[0].inTableRange, false);
+    assert.ok(Math.abs(result[0].shaftKw - 0.463) < 0.005);
+    assert.ok(Math.abs(result[0].installedKw - 0.463 * PodborCalc.nominalFactor(0.75)) < 0.005);
+    assert.strictEqual(result[0].motor.type, 'L');
+    assert.strictEqual(result[0].motorBasis, 'graph');
+  }]);
+
+  tests.push(['selectCandidates: в пределах таблицы и график проходит — берётся наименьший двигатель строки (0,55 кВт при вале 0,417 кВт)', () => {
+    // P=900 Па -> вал = 900*1000/(3.6e6*0.6) = 0.4167 кВт <= 0.55/1.29*1.03 = 0.439 -> 0.55 проходит и по графику, и по таблице
+    const curve = { rpmNominal: 1500, rpmActual: 1350, qRangeThousand: [0.1, 5], coeffs: { a: 0, b: 0, c: 900 },
+      motors: [{ nominalKw: 0.75, type: 'L' }, { nominalKw: 0.55, type: 'S' }],
+      etaSamples: [{ q: 0.1, eta: 0.6 }, { q: 5, eta: 0.6 }], powerSamples: [] };
+    const data = { typorazmery: { '2,5': { diameters: [{ d: 1.0, graphImage: 'x', calibration: {}, curves: [curve] }] } } };
+    const result = PodborCalc.selectCandidates(data, { qReqM3h: 1000, pReqPa: 900, calcType: 'full', upPct: 10, downPct: 10, marginPct: 0 });
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result[0].inTableRange, true);
+    assert.strictEqual(result[0].motor.type, 'S');
+    assert.strictEqual(result[0].motorBasis, 'graph+table');
+    assert.ok(result[0].installedKw <= 0.55 * 1.03);
+  }]);
+
+  tests.push(['selectCandidates: таблица перечисляет 0,55 кВт, но график его не пропускает (вал 0,463 кВт) — берётся 0,75 кВт, согласованный с обоими', () => {
     const curve = { rpmNominal: 1500, rpmActual: 1350, qRangeThousand: [0.1, 5], coeffs: { a: 0, b: 0, c: 1000 },
       motors: [{ nominalKw: 0.55, type: 'S' }, { nominalKw: 0.75, type: 'L' }],
       etaSamples: [{ q: 0.1, eta: 0.6 }, { q: 5, eta: 0.6 }], powerSamples: [] };
     const data = { typorazmery: { '2,5': { diameters: [{ d: 1.0, graphImage: 'x', calibration: {}, curves: [curve] }] } } };
     const result = PodborCalc.selectCandidates(data, { qReqM3h: 1000, pReqPa: 1000, calcType: 'full', upPct: 10, downPct: 10, marginPct: 0 });
     assert.strictEqual(result.length, 1);
-    assert.ok(Math.abs(result[0].shaftKw - 0.463) < 0.005);
-    assert.ok(Math.abs(result[0].installedKw - 0.694) < 0.005);
+    assert.strictEqual(result[0].inTableRange, true);
     assert.strictEqual(result[0].motor.type, 'L');
+    assert.strictEqual(result[0].motorBasis, 'graph+table');
+  }]);
+
+  tests.push(['selectCandidates: мощности не хватает ни одному двигателю строки — motor=null, установочная мощность показана', () => {
+    const curve = { rpmNominal: 1500, rpmActual: 1350, qRangeThousand: [0.1, 5], coeffs: { a: 0, b: 0, c: 5000 },
+      motors: [{ nominalKw: 0.55, type: 'S' }, { nominalKw: 0.75, type: 'L' }],
+      etaSamples: [{ q: 0.1, eta: 0.6 }, { q: 5, eta: 0.6 }], powerSamples: [] };
+    const data = { typorazmery: { '2,5': { diameters: [{ d: 1.0, graphImage: 'x', calibration: {}, curves: [curve] }] } } };
+    const result = PodborCalc.selectCandidates(data, { qReqM3h: 1000, pReqPa: 5000, calcType: 'full', upPct: 10, downPct: 10, marginPct: 0 });
+    assert.strictEqual(result.length, 1);
+    assert.strictEqual(result[0].motor, null);
+    assert.strictEqual(result[0].motorBasis, null);
+    assert.ok(result[0].installedKw > 0.75);
+  }]);
+
+  tests.push(['коэффициент запаса каталога: узлы измерены по нарисованным дугам, между узлами — по log(номинала)', () => {
+    assert.strictEqual(PodborCalc.nominalFactor(0.55), 1.29);
+    assert.strictEqual(PodborCalc.nominalFactor(0.75), 1.3);
+    assert.strictEqual(PodborCalc.nominalFactor(0.01), 1.49);
+    assert.strictEqual(PodborCalc.nominalFactor(100), 1.1);
+    const mid = PodborCalc.nominalFactor(0.65);
+    assert.ok(mid > 1.29 && mid < 1.3 + 1e-9, String(mid));
+    assert.ok(Math.abs(PodborCalc.shaftCapacityKw(0.55) - 0.55 / 1.29) < 1e-9);
   }]);
 
   tests.push(['selectCandidates: не выходит за нарисованный участок кривой (qRangeGraph)', () => {
@@ -186,7 +237,10 @@ function run() {
         for (const k of ['shaftKw', 'installedKw']) assert.ok(c[k] === null || Number.isFinite(c[k]), `${k}: ${c[k]}`);
         assert.strictEqual(c.eta === null, c.shaftKw === null);
         assert.strictEqual(c.shaftKw === null, c.installedKw === null);
-        if (c.installedKw === null) assert.strictEqual(c.motor, null);
+        // двигатель без известной мощности возможен только из таблицы каталога (точка в её диапазоне)
+        if (c.installedKw === null && !c.inTableRange) assert.strictEqual(c.motor, null);
+        if (c.motor) assert.ok(['graph+table', 'graph', 'table'].includes(c.motorBasis), String(c.motorBasis));
+        if (c.motor && c.motorBasis !== 'table') assert.ok(c.shaftKw <= PodborCalc.shaftCapacityKw(c.motor.nominalKw) * 1.03 + 1e-9);
         assert.ok(c.motor === null || Number.isFinite(c.motor.nominalKw));
       }
       // реализация: eta по убыванию, кандидаты с eta === null — в конце
@@ -194,6 +248,72 @@ function run() {
         const prev = r[i - 1].eta === null ? -1 : r[i - 1].eta;
         const cur = r[i].eta === null ? -1 : r[i].eta;
         assert.ok(prev >= cur, `нарушена сортировка: ${prev} < ${cur}`);
+      }
+    }
+  }]);
+
+  tests.push(['REAL: кандидат без КПД (край рабочего участка) несёт двигатели каталога; motor — из таблицы, если точка в её диапазоне', () => {
+    // 4, D=0.95, n=880: замеры КПД начинаются с Q=1.42 тыс. м3/ч, а нарисованная кривая — от 1.17
+    const r = PodborCalc.selectCandidates(REAL, realInput(1330, 180));
+    const noEta = r.filter((c) => c.eta === null);
+    assert.ok(noEta.length >= 1, 'на этом входе ожидался хотя бы один кандидат без КПД');
+    for (const c of noEta) {
+      const cv = findRealCurve(c);
+      assert.ok(Array.isArray(c.catalogMotors) && c.catalogMotors.length >= 1);
+      assert.deepStrictEqual(c.catalogMotors, cv.motors);
+      // без КПД мощность не считается, поэтому двигатель бывает только «по таблице» и только в её диапазоне
+      if (c.motor) { assert.strictEqual(c.motorBasis, 'table'); assert.strictEqual(c.inTableRange, true); }
+      else assert.strictEqual(c.inTableRange, false);
+    }
+    // и у кандидатов с КПД поле тоже есть — UI показывает его только при eta === null
+    for (const c of r.filter((x) => x.eta !== null)) assert.deepStrictEqual(c.catalogMotors, findRealCurve(c).motors);
+  }]);
+
+  tests.push(['REAL: точка 2500 м3/ч, 350 Па — ВЦ 4-70-4 D=0,95 n=1380 получает 0,55 кВт: согласуется и с графиком (дуга 0,55 рассчитана), и с таблицей', () => {
+    const r = PodborCalc.selectCandidates(REAL, realInput(2500, 350));
+    const c = r.find((x) => x.typorazmer === '4' && x.diameter === 0.95 && x.rpmActual === 1380);
+    assert.ok(c, 'нет кандидата 4, D=0,95, n=1380');
+    // таблица каталога: 1,80–4,20 тыс. м3/ч, 415–220 Па, двигатели 0,55 и 0,75 кВт — оба на весь диапазон
+    assert.strictEqual(c.inTableRange, true);
+    assert.strictEqual(c.motor.nominalKw, 0.55);
+    assert.strictEqual(c.motorBasis, 'graph+table');
+    // график: вал 0,415 кВт при допустимых для 0,55 кВт 0,426; справочная установочная мощность не выше номинала
+    assert.ok(c.shaftKw <= PodborCalc.shaftCapacityKw(0.55));
+    assert.ok(c.installedKw <= 0.55 + 1e-9);
+    // расчётная дуга 0,55 кВт для графика построена
+    assert.ok(c.nyArc && c.nyArc.nominalKw === 0.55 && c.nyArc.points.length >= 10);
+  }]);
+
+  tests.push(['REAL: расчётная дуга мощности — вдоль неё мощность на валу постоянна и равна заданной (метод P=a·Q², η по линиям КПД)', () => {
+    const dia = REAL.typorazmery['4'].diameters.find((d) => d.d === 0.95);
+    const target = 0.5;
+    const pts = PodborCalc.powerArcPoints(dia.etaField, target);
+    assert.ok(pts.length >= 50);
+    for (const [q, p] of pts) {
+      const eta = PodborCalc.etaAtA(dia.etaField, p / (q * q));
+      assert.ok(eta > 0.6 && eta < 0.8, 'eta ' + eta);
+      assert.ok(Math.abs((p * q) / (3600 * eta) - target) < 1e-6);
+    }
+    // проверка по нарисованной дуге Nу=0,75 кВт (K'=1,30 → вал 0,577): дуга должна проходить через точку Q≈3,6, P≈430
+    // (снято с нарисованной синей дуги графика D=0,95; допуск 6 %)
+    const arc = PodborCalc.powerArcPoints(dia.etaField, 0.75 / 1.3, 200);
+    const near = arc.reduce((best, pt) => (Math.abs(Math.log(pt[0] / 3.6)) < Math.abs(Math.log(best[0] / 3.6)) ? pt : best), arc[0]);
+    assert.ok(Math.abs(near[1] / 430 - 1) < 0.06, 'P на дуге при Q≈' + near[0].toFixed(2) + ' = ' + near[1].toFixed(0));
+  }]);
+
+  tests.push(['REAL: у каждого графика есть рамка поля (plotFrame) внутри картинки и поле КПД для расчёта дуг', () => {
+    for (const [key, t] of Object.entries(REAL.typorazmery)) {
+      for (const dia of t.diameters) {
+        const f = dia.calibration.plotFrame;
+        const cal = dia.calibration;
+        assert.ok(Array.isArray(f) && f.length === 4, `${key} D=${dia.d}: нет plotFrame`);
+        assert.ok(f[0] >= 0 && f[1] >= 0 && f[2] <= cal.imageWidth && f[3] <= cal.imageHeight && f[2] > f[0] && f[3] > f[1], `${key} D=${dia.d}: рамка вне картинки`);
+        assert.ok(Array.isArray(dia.etaField) && dia.etaField.length >= 5, `${key} D=${dia.d}: нет поля КПД`);
+        // поле КПД — колокол: значения растут к середине, потом падают (защита от перепутанных подписей КПД)
+        const e = dia.etaField.map((r) => r[1]);
+        const peak = e.indexOf(Math.max(...e));
+        for (let i = 1; i <= peak; i++) assert.ok(e[i] >= e[i - 1] - 1e-9, `${key} D=${dia.d}: КПД не растёт до пика: ${e}`);
+        for (let i = peak + 1; i < e.length; i++) assert.ok(e[i] <= e[i - 1] + 1e-9, `${key} D=${dia.d}: КПД не падает после пика: ${e}`);
       }
     }
   }]);
