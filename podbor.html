@@ -3,75 +3,144 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Демо подбора ВЦ 4-70</title>
+<title>Демо подбора ВЦ 4-70 — Аэрохит</title>
 <link rel="icon" href="data:,">
 <style>
-  :root { --bg:#0d1117; --fg:#e6edf3; --accent:#4c8dff; --accent-strong:#1d5fd1; --border:#30363d; }
-  body { background:var(--bg); color:var(--fg); font-family:system-ui,sans-serif; margin:0; padding:16px; }
-  h1 { font-size:1.4rem; }
-  label { display:block; margin-top:12px; font-size:0.9rem; }
-  input, select { width:100%; max-width:360px; padding:8px; margin-top:4px; background:#161b22; color:var(--fg); border:1px solid var(--border); border-radius:6px; box-sizing:border-box; }
-  button { margin-top:16px; padding:10px 20px; background:var(--accent-strong); color:white; border:none; border-radius:6px; cursor:pointer; font-size:1rem; }
-  button:focus-visible, a:focus-visible { outline:2px solid var(--accent); }
-  #candidateList { list-style:none; padding:0; margin-top:16px; }
-  #candidateList li { padding:10px; border:1px solid var(--border); border-radius:6px; margin-bottom:8px; cursor:pointer; }
-  #candidateList li:hover, #candidateList li.selected { border-color:var(--accent); }
-  #candidateList li:focus-visible { outline:2px solid var(--accent); }
-  #resultMessage { margin-top:12px; }
-  #graphView { position:relative; margin-top:16px; width:fit-content; max-width:100%; }
+  /* Палитра: фирменный голубой Аэрохит (логотип) и светлые нейтральные тона, без чёрного. */
+  :root {
+    --bg:#f1f6fa;            /* фон страницы */
+    --card:#ffffff;          /* карточки */
+    --fg:#25384a;            /* основной текст: тёмный сине-серый */
+    --muted:#5b6d7d;         /* второстепенный текст */
+    --brand:#0094cc;         /* голубой логотипа */
+    --brand-strong:#00709e;  /* кнопки, ссылки (контраст с белым ≥ 5:1) */
+    --brand-soft:#e3f3fa;    /* мягкая голубая подложка */
+    --border:#c9d8e4;
+    --field-border:#7f97aa;  /* границы полей ≥ 3:1 на белом */
+  }
+  * { box-sizing:border-box; }
+  body { background:var(--bg); color:var(--fg); font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; margin:0; line-height:1.45; }
+  .page { max-width:1500px; margin:0 auto; padding:0 16px 32px; }
+
+  /* ---- Фирменный бланк в шапке ---- */
+  .letterhead { background:var(--card); border-bottom:4px solid var(--brand); }
+  .letterhead-inner { max-width:1500px; margin:0 auto; padding:14px 16px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+  .letterhead .logo { display:block; height:64px; width:auto; }
+  .requisites { font-size:0.8rem; color:var(--muted); line-height:1.5; }
+  .requisites .country { text-transform:uppercase; letter-spacing:0.06em; font-size:0.7rem; }
+  .requisites .org { color:var(--fg); font-weight:600; text-transform:uppercase; font-size:0.78rem; }
+  .requisites a { color:var(--brand-strong); text-decoration:none; }
+
+  h1 { font-size:1.5rem; margin:24px 0 4px; color:var(--fg); }
+  .lead { margin:0 0 16px; color:var(--muted); }
+  h2 { font-size:1.15rem; margin:0 0 12px; }
+
+  /* ---- Форма ---- */
+  .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px; }
+  label { display:block; margin-top:12px; font-size:0.9rem; color:var(--fg); }
+  label:first-child { margin-top:0; }
+  input, select { display:block; width:100%; max-width:360px; padding:9px 10px; margin-top:4px; font-size:1rem; font-family:inherit;
+                  background:#fff; color:var(--fg); border:1px solid var(--field-border); border-radius:6px; }
+  input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible, #candidateList li:focus-visible { outline:3px solid var(--brand); outline-offset:1px; }
+  button { margin-top:16px; padding:11px 22px; background:var(--brand-strong); color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:1rem; font-family:inherit; }
+  button:hover { background:#005f86; }
+  button.secondary { background:#fff; color:var(--brand-strong); border:2px solid var(--brand-strong); margin-top:12px; }
+  button.secondary:hover { background:var(--brand-soft); }
+
+  /* ---- Результат ---- */
+  #resultMessage { margin-top:14px; color:var(--fg); }
+  #candidateList { list-style:none; padding:0; margin:12px 0 0; }
+  #candidateList li { padding:11px 12px; background:var(--card); border:1px solid var(--border); border-left:5px solid var(--border); border-radius:8px; margin-bottom:8px; cursor:pointer; }
+  #candidateList li:hover { border-color:var(--brand); background:var(--brand-soft); }
+  #candidateList li.selected { border-color:var(--brand); border-left-color:var(--brand); background:var(--brand-soft); font-weight:600; }
+  #graphView { position:relative; margin-top:16px; width:fit-content; max-width:100%; background:var(--card); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
   #graphView img { max-width:100%; display:block; }
   #graphView svg { position:absolute; top:0; left:0; width:100%; height:100%; }
   #summary, #chertyozhView { margin-top:16px; }
-  table { border-collapse:collapse; }
-  td, th { border:1px solid var(--border); padding:4px 8px; text-align:left; }
+  #chertyozhView img { max-width:100%; background:#fff; border:1px solid var(--border); border-radius:8px; }
+  table { border-collapse:collapse; width:100%; background:var(--card); }
+  td, th { border:1px solid var(--border); padding:6px 10px; text-align:left; vertical-align:top; }
+  th { background:var(--brand-soft); font-weight:600; width:42%; }
+  #chertyozhView th { width:auto; }
+  .note { margin-top:20px; font-size:0.8rem; color:var(--muted); }
+
+  /* Широкий экран: форма, список и сводка слева, график справа и остаётся на виду при прокрутке.
+     Узкий экран: всё в одну колонку, график под списком (UI прокручивает к нему по клику). */
+  @media (min-width: 1100px) {
+    .layout { display:grid; grid-template-columns:minmax(380px, 540px) minmax(0, 1fr); column-gap:24px; align-items:start; }
+    .layout > * { grid-column:1; }
+    .layout > #graphView { grid-column:2; grid-row:1 / span 40; position:sticky; top:16px; margin-top:0; }
+    #graphView img { max-height:calc(100vh - 34px); width:auto; }
+  }
 </style>
 </head>
 <body>
-  <h1>Демо: подбор ВЦ 4-70 по рабочей точке</h1>
-  <p>Прототип для проверки на первых пользователях. Данные — только по типоразмерам 2,5 / 3,15 / 4.</p>
+  <header class="letterhead">
+    <div class="letterhead-inner">
+      <img class="logo" src="assets/podbor/aeroheat-logo.png" alt="Аэрохит — aeroheat.by" width="160" height="64">
+      <div class="requisites">
+        <div class="country">Республика Беларусь</div>
+        <div class="org">Общество с ограниченной ответственностью «АЭРОХИТ»</div>
+        <div>223035, а/г Ратомка, Минский район, ул. Перспективная, 12, офис 49</div>
+        <div>+375 29 690 06 60; +375 29 785 54 89; +375 17 507 71 20</div>
+        <div>эл. почта: <a href="mailto:info@aeroheat.by">info@aeroheat.by</a>, вайбер +375 29 690 81 70</div>
+      </div>
+    </div>
+  </header>
 
-  <label for="qInput">Расход требуемый, м³/ч *
-    <input id="qInput" type="number" value="6000" min="1" aria-required="true">
-  </label>
-  <label for="pInput">Давление требуемое, Па *
-    <input id="pInput" type="number" value="1100" min="1" aria-required="true">
-  </label>
-  <label for="calcType">Тип расчёта
-    <select id="calcType">
-      <option value="full" selected>Полный</option>
-      <option value="static">Статический</option>
-    </select>
-  </label>
-  <label for="upPct">Допустимое отклонение вверх, %
-    <input id="upPct" type="number" value="30" min="0" max="200">
-  </label>
-  <label for="downPct">Допустимое отклонение вниз, %
-    <input id="downPct" type="number" value="15" min="0" max="100">
-  </label>
-  <label for="tempInput">Температура воздуха, °C
-    <input id="tempInput" type="number" value="20">
-  </label>
-  <label for="ispolnenie">Исполнение
-    <select id="ispolnenie">
-      <option value="general">Общего назначения (оцинкованная сталь)</option>
-      <option value="corrosion">Коррозионностойкое (нержавеющая сталь)</option>
-    </select>
-  </label>
+  <div class="page">
+    <h1 class="screen-title">Демо: подбор ВЦ 4-70 по рабочей точке</h1>
+    <p class="lead">Прототип для проверки на первых пользователях. Данные — только по типоразмерам 2,5 / 3,15 / 4.</p>
 
-  <button id="calcBtn" type="button">Рассчитать</button>
+    <div class="layout">
+      <div id="calcForm" class="card">
+        <label for="qInput">Расход требуемый, м³/ч *
+          <input id="qInput" type="number" value="6000" min="1" aria-required="true">
+        </label>
+        <label for="pInput">Давление требуемое, Па *
+          <input id="pInput" type="number" value="1100" min="1" aria-required="true">
+        </label>
+        <label for="calcType">Тип расчёта
+          <select id="calcType">
+            <option value="full" selected>Полный</option>
+            <option value="static">Статический</option>
+          </select>
+        </label>
+        <label for="upPct">Допустимое отклонение вверх, %
+          <input id="upPct" type="number" value="30" min="0" max="200">
+        </label>
+        <label for="downPct">Допустимое отклонение вниз, %
+          <input id="downPct" type="number" value="15" min="0" max="100">
+        </label>
+        <label for="tempInput">Температура воздуха, °C
+          <input id="tempInput" type="number" value="20">
+        </label>
+        <label for="ispolnenie">Исполнение
+          <select id="ispolnenie">
+            <option value="general">Общего назначения (оцинкованная сталь)</option>
+            <option value="corrosion">Коррозионностойкое (нержавеющая сталь)</option>
+          </select>
+        </label>
 
-  <div id="resultMessage" role="status"></div>
-  <ul id="candidateList"></ul>
-  <div id="graphView" hidden>
-    <img id="graphImg" alt="Аэродинамическая характеристика выбранного вентилятора">
-    <svg id="graphSvg"></svg>
+        <button id="calcBtn" type="button">Рассчитать</button>
+      </div>
+
+      <div id="resultMessage" role="status"></div>
+      <button id="printBtn" class="secondary" type="button" hidden>Скачать PDF</button>
+      <ul id="candidateList"></ul>
+      <div id="graphView" hidden>
+        <img id="graphImg" alt="Аэродинамическая характеристика выбранного вентилятора">
+        <svg id="graphSvg"></svg>
+      </div>
+      <div id="summary"></div>
+      <div id="chertyozhView"></div>
+    </div>
   </div>
-  <div id="summary"></div>
-  <div id="chertyozhView"></div>
 
   <script src="podbor-data.js"></script>
   <script src="podbor-calc.js"></script>
   <script src="podbor-overlay.js"></script>
+  <script src="podbor-pdf.js"></script>
   <script src="podbor-ui.js"></script>
 </body>
 </html>

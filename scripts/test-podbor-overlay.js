@@ -61,6 +61,61 @@ function run() {
     assert.ok(hasPointNearTarget, `Парабола должна проходить через целевую точку (${targetCx}, ${targetCy})`);
   }]);
 
+  tests.push(['renderOverlay рисует расчётную дугу Nу (polyline + подпись) ПОД параболой и точкой, в координатах калибровки', () => {
+    const elements = [];
+    const fakeSvg = {
+      children: [],
+      removeChild(c) { this.children = this.children.filter((x) => x !== c); },
+      appendChild(c) { this.children.push(c); },
+      ownerDocument: {
+        createElementNS: (ns, tag) => {
+          const el = { tag, attrs: {}, textContent: '' };
+          el.setAttribute = function (k, v) { this.attrs[k] = v; };
+          elements.push(el);
+          return el;
+        }
+      }
+    };
+    const arc = { label: 'Nу=0,55 кВт (расчёт)', points: [[1, 100], [2, 50], [4, 20]] };
+    PodborOverlay.renderOverlay(fakeSvg, { qThousand: 2, pPa: 10, targetQThousand: 2, targetPPa: 10, arcs: [arc] }, calibration);
+    // порядок: дуга, подпись дуги, парабола сети, точка
+    assert.deepStrictEqual(elements.map((e) => e.tag), ['polyline', 'text', 'polyline', 'circle']);
+    const pts = elements[0].attrs.points.split(' ').map((p) => p.split(',').map(parseFloat));
+    assert.strictEqual(pts.length, 3);
+    assert.strictEqual(pts[1][0], PodborOverlay.pixelForQ(2, calibration));
+    assert.strictEqual(pts[1][1], PodborOverlay.pixelForP(50, calibration));
+    assert.strictEqual(elements[1].textContent, arc.label);
+    // без arcs ничего лишнего не рисуется (см. тест выше: ровно polyline + circle)
+    elements.length = 0; fakeSvg.children = [];
+    PodborOverlay.renderOverlay(fakeSvg, { qThousand: 2, pPa: 10, targetQThousand: 2, targetPPa: 10, arcs: [{ label: 'x', points: [[1, 1]] }] }, calibration);
+    assert.deepStrictEqual(elements.map((e) => e.tag), ['polyline', 'circle'], 'дуга из одной точки не рисуется');
+  }]);
+
+  tests.push(['renderOverlay не рисует линии за рамкой поля графика (plotFrame), точка остаётся', () => {
+    const elements = [];
+    const fakeSvg = {
+      children: [],
+      removeChild(c) { this.children = this.children.filter((x) => x !== c); },
+      appendChild(c) { this.children.push(c); },
+      ownerDocument: {
+        createElementNS: (ns, tag) => {
+          const el = { tag, attrs: {}, textContent: '' };
+          el.setAttribute = function (k, v) { this.attrs[k] = v; };
+          elements.push(el);
+          return el;
+        }
+      }
+    };
+    // рамка: x 100..400, y 500..1200 (в пикселях калибровки). Парабола сети через (2, 10) уходит далеко за рамку.
+    const cal = Object.assign({ plotFrame: [100, 500, 400, 1200] }, calibration);
+    PodborOverlay.renderOverlay(fakeSvg, { qThousand: 2, pPa: 10, targetQThousand: 2, targetPPa: 10 }, cal);
+    const net = elements.find((e) => e.tag === 'polyline');
+    const pts = net.attrs.points.split(' ').map((p) => p.split(',').map(parseFloat));
+    assert.ok(pts.length >= 2 && pts.length < 61, 'часть точек параболы должна быть отброшена: ' + pts.length);
+    pts.forEach(([x, y]) => assert.ok(x >= 100 && x <= 400 && y >= 500 && y <= 1200, `точка вне рамки: ${x},${y}`));
+    assert.strictEqual(elements.filter((e) => e.tag === 'circle').length, 1);
+  }]);
+
   tests.push(['renderOverlay защищен от нефинитных targetQThousand', () => {
     const fakeSvg = {
       children: ['old'],
